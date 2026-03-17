@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   DESIGN TOKENS — แก้สีทั้งหมดที่นี่ที่เดียว
+   ============================================================ */
+
+:root {
+  /* ── Brand ─────────────────────────────────── */
+  --color-primary: #f8b4c4; /* pink — ปุ่มหลัก, avatar */
+  --color-primary-fg: #1f2937; /* ตัวอักษรบนพื้น primary */
+
+  /* ── App Background ────────────────────────── */
+  --color-app-bg: #fdfeff; /* พื้นหลังทุกหน้า */
+  --color-app-bg-secondary: #f2f4f7; /* พื้นหลังทุกหน้าที่สอง */
+  /* ── Surface ────────────────────────────────── */
+  --color-surface: #ffffff; /* card, header, modal */
+
+  /* ── Text ───────────────────────────────────── */
+  --color-text: #111827; /* gray-900 — ข้อความหลัก */
+  --color-text-secondary: #6b7280; /* gray-500 */
+  --color-text-muted: #9ca3af; /* gray-400 */
+  --color-text-subtle: #d1d5db; /* gray-300 — divider, icon รอง */
+
+  /* ── Category: Feeding ──────────────────────── */
+  --color-feeding-bg: #eff6ff; /* blue-50 */
+  --color-feeding: #2563eb; /* blue-600 */
+  --color-feeding-muted: #93c5fd; /* blue-300 */
+
+  /* ── Category: Diaper ───────────────────────── */
+  --color-diaper-bg: #fffbeb; /* amber-50 */
+  --color-diaper: #d97706; /* amber-600 */
+  --color-diaper-muted: #fcd34d; /* amber-300 */
+
+  /* ── Category: Sleep ────────────────────────── */
+  --color-sleep-bg: #faf5ff; /* purple-50 */
+  --color-sleep: #9333ea; /* purple-600 */
+  --color-sleep-muted: #d8b4fe; /* purple-300 */
+
+  /* ── Category: Medical ──────────────────────── */
+  --color-medical-bg: #ecfdf5; /* emerald-50 */
+  --color-medical: #10b981; /* emerald-500 */
+
+  /* ── Legacy (Next.js default — คงไว้เพื่อ compatibility) ── */
+  --background: var(--color-surface);
+  --foreground: var(--color-text);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sarabun), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-prompt), sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/*
+  Prevent iOS Safari from auto-zooming the viewport when focusing an input.
+  Safari zooms when the input font-size < 16px. The attribute selector gives
+  specificity 0,1,1 which beats Tailwind utility classes (0,1,0), so this
+  overrides text-sm (14px) without needing !important.
+*/
+input[type],
+input:not([type]),
+select,
+textarea {
+  font-size: max(1rem, 16px);
+}
