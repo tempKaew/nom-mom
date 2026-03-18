@@ -9,16 +9,15 @@ import { MESSAGES } from "@/constants/messages";
  * On success returns { lineAuth, userId } so the route can proceed.
  */
 export async function requireLineAuth(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<
-  | { lineAuth: LineAuthResult; userId: string }
-  | NextResponse<{ error: string }>
+  { lineAuth: LineAuthResult; userId: string } | NextResponse<{ error: string }>
 > {
   const lineAuth = await getLineUserIdFromRequest(request);
   if (!lineAuth) {
     return NextResponse.json(
       { error: MESSAGES.AUTH.MISSING_OR_INVALID },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -26,7 +25,7 @@ export async function requireLineAuth(
   if (!userId) {
     return NextResponse.json(
       { error: MESSAGES.AUTH.USER_NOT_FOUND },
-      { status: 404 }
+      { status: 404 },
     );
   }
 

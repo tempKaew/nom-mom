@@ -218,40 +218,43 @@ export default function EditBabyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F4F7]">
-      {/* Header */}
-      <header className="bg-white px-4 pt-5 pb-4 shadow-sm flex items-center gap-3">
-        <Link
-          href="/dashboard"
-          aria-label="กลับ"
-          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors shrink-0"
-        >
-          <ChevronLeftIcon size={16} className="text-gray-600" />
-        </Link>
-        <h1 className="text-lg font-bold text-gray-900">แก้ไขข้อมูลเด็ก</h1>
-      </header>
+    <div className="min-h-screen bg-app-bg-secondary flex flex-col">
+      {/* ── Gradient header with avatar ────────────────────────────────── */}
+      <header
+        className="px-4 pt-5 pb-7 flex flex-col"
+        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+      >
+        <div className="flex items-center gap-3 mb-5">
+          <Link
+            href="/dashboard"
+            aria-label="กลับ"
+            className="w-8 h-8 rounded-full bg-white/60 border border-green-200 flex items-center justify-center shrink-0"
+          >
+            <ChevronLeftIcon size={16} className="text-green-700" />
+          </Link>
+          <h1 className="text-lg font-bold text-green-900">แก้ไขข้อมูลเด็ก</h1>
+        </div>
 
-      <main className="px-4 pt-5 pb-10 max-w-md mx-auto">
-        {/* Avatar section */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col items-center mb-3">
+        {/* Avatar */}
+        <div className="flex flex-col items-center">
           <div className="relative mb-3">
             {baby.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={baby.avatar_url}
                 alt=""
-                className="w-20 h-20 rounded-full object-cover shadow"
+                className="w-20 h-20 rounded-full object-cover border-2 border-green-200 shadow-sm"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center shadow">
-                <span className="text-blue-600 font-bold text-3xl">
+              <div className="w-20 h-20 rounded-full bg-white/60 border-2 border-green-200 shadow-sm flex items-center justify-center">
+                <span className="text-green-700 font-black text-3xl">
                   {baby.name.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
           </div>
-          <label className="rounded-2xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors">
-            อัพโหลด / เปลี่ยนรูป
+          <label className="rounded-full bg-white/60 border border-green-200 px-4 py-1.5 text-xs font-semibold text-green-700 cursor-pointer active:bg-white transition-colors">
+            {uploadSubmitting ? "กำลังอัพโหลด…" : "เปลี่ยนรูปภาพ"}
             <input
               type="file"
               accept="image/*"
@@ -264,23 +267,25 @@ export default function EditBabyPage() {
             <p className="mt-2 text-xs text-red-500">{uploadError}</p>
           )}
         </div>
+      </header>
 
-        {/* Profile form */}
+      {/* ── Form ──────────────────────────────────────────────────────── */}
+      <main className="flex-1 px-4 pt-5 pb-10 max-w-md mx-auto w-full">
         <form onSubmit={handleSaveProfile} className="space-y-3">
           <div className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
             <div>
               <label
                 htmlFor="editName"
-                className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5"
+                className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5"
               >
-                ชื่อเด็ก *
+                ชื่อเด็ก <span className="text-red-400">*</span>
               </label>
               <input
                 id="editName"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:bg-white transition-colors"
+                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
                 required
               />
             </div>
@@ -288,7 +293,7 @@ export default function EditBabyPage() {
             <div>
               <label
                 htmlFor="editBirthDate"
-                className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5"
+                className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5"
               >
                 วันเกิด
               </label>
@@ -297,13 +302,13 @@ export default function EditBabyPage() {
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:bg-white transition-colors"
+                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
               />
             </div>
           </div>
 
           {saveError && (
-            <div className="bg-red-50 rounded-2xl px-4 py-3">
+            <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
               <p className="text-sm text-red-600">{saveError}</p>
             </div>
           )}
@@ -311,7 +316,8 @@ export default function EditBabyPage() {
           <button
             type="submit"
             disabled={saveSubmitting}
-            className="w-full rounded-2xl bg-blue-500 py-3.5 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-50 shadow-sm transition-colors"
+            className="w-full rounded-2xl py-3.5 text-sm font-bold text-white shadow-md active:scale-[0.98] transition-transform disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
           >
             {saveSubmitting ? "กำลังบันทึก…" : "บันทึก"}
           </button>
@@ -327,7 +333,7 @@ export default function EditBabyPage() {
                 setDeleteError("");
                 setShowDeleteModal(true);
               }}
-              className="w-full rounded-2xl border border-red-200 py-3.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+              className="w-full rounded-2xl border border-red-200 py-3.5 text-sm font-medium text-red-400 active:bg-red-50 transition-colors"
             >
               ลบข้อมูลเด็ก
             </button>

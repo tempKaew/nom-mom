@@ -361,6 +361,7 @@ export type Baby = Database["public"]["Tables"]["babies"]["Row"];
 
 export type UserRow = {
   id: string;
+  line_user_id: string | null;
   display_name: string | null;
   picture_url: string | null;
 };

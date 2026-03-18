@@ -6,7 +6,7 @@ export async function findUserByLineId(
 ): Promise<UserRow | null> {
   const { data, error } = await supabaseServer
     .from("users")
-    .select("id, display_name, picture_url")
+    .select("id, line_user_id, display_name, picture_url")
     .eq("line_user_id", lineUserId)
     .maybeSingle();
 
@@ -54,4 +54,35 @@ export async function userExistsByLineId(
 ): Promise<boolean> {
   const id = await findUserIdByLineId(lineUserId);
   return id != null;
+}
+
+export async function getUserPinHash(
+  lineUserId: string,
+): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabaseServer as any)
+    .from("users")
+    .select("pin_hash")
+    .eq("line_user_id", lineUserId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return (data as { pin_hash: string | null }).pin_hash ?? null;
+}
+
+export async function setUserPinHash(
+  lineUserId: string,
+  pinHash: string,
+): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabaseServer as any)
+    .from("users")
+    .update({ pin_hash: pinHash, updated_at: new Date().toISOString() })
+    .eq("line_user_id", lineUserId);
+
+  if (error) {
+    console.error("[userRepository] setUserPinHash error:", error);
+    return false;
+  }
+  return true;
 }

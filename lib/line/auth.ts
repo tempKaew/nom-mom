@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getLiffChannelId } from "@/config/env";
 import { MESSAGES } from "@/constants/messages";
+import { peekTokenType, verifyWebToken } from "@/lib/webAuth";
 
 const LINE_VERIFY_URL = "https://api.line.me/oauth2/v2.1/verify";
 
@@ -17,17 +18,41 @@ export type LineAuthResult = {
 };
 
 /**
- * Get LINE user ID from request by verifying the LIFF ID token.
- * Expects header: Authorization: Bearer <liff_id_token>
+ * Get LINE user ID from request by verifying the token.
+ * Expects header: Authorization: Bearer <token>
+ *
+ * Accepts two token types:
+ *   1. LINE LIFF ID token  — verified against LINE's /oauth2/v2.1/verify endpoint
+ *   2. Web JWT             — verified locally using WEB_AUTH_SECRET
+ *
  * Returns null if missing or invalid.
  */
 export async function getLineUserIdFromRequest(
   request: NextRequest
 ): Promise<LineAuthResult | null> {
-  const auth = request.headers.get("authorization");
+  const auth  = request.headers.get("authorization");
   const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
   if (!token) return null;
 
+  // Route to the correct verifier based on the token's `type` claim
+  if (peekTokenType(token) === "web") {
+    return verifyWebTokenFromRequest(token);
+  }
+
+  return verifyLineToken(token);
+}
+
+// ─── Web token verifier ───────────────────────────────────────────────────────
+
+function verifyWebTokenFromRequest(token: string): LineAuthResult | null {
+  const payload = verifyWebToken(token);
+  if (!payload) return null;
+  return { lineUserId: payload.lineUserId };
+}
+
+// ─── LINE ID token verifier ───────────────────────────────────────────────────
+
+async function verifyLineToken(token: string): Promise<LineAuthResult | null> {
   const channelId = getLiffChannelId();
   if (!channelId) {
     console.error("[line/auth] LIFF_CHANNEL_ID is not set");
@@ -57,8 +82,8 @@ export async function getLineUserIdFromRequest(
 
     return {
       lineUserId: payload.sub,
-      name: payload.name,
-      picture: payload.picture,
+      name:       payload.name,
+      picture:    payload.picture,
     };
   } catch (err) {
     console.error("[line/auth] Verify error:", err);

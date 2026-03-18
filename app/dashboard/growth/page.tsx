@@ -265,40 +265,23 @@ export default function GrowthPage() {
 
   const latest = records[0] ?? null;
 
-  const metrics: {
-    label: string;
-    unit: string;
-    icon: React.ReactNode;
-    value: string | null;
-    color: string;
-    bg: string;
-  }[] = [
+  const metrics: { label: string; unit: string; value: string | null }[] = [
     {
       label: "น้ำหนัก",
-      unit: "kg",
-      icon: <ScaleIcon size={14} />,
+      unit:  "kg",
       value: latest?.weight_kg != null ? latest.weight_kg.toFixed(3) : null,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
     },
     {
       label: "ส่วนสูง",
-      unit: "cm",
-      icon: <RulerIcon size={14} />,
+      unit:  "cm",
       value: latest?.height_cm != null ? latest.height_cm.toFixed(1) : null,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
     },
     {
       label: "รอบศีรษะ",
-      unit: "cm",
-      icon: <BrainIcon size={14} />,
-      value:
-        latest?.head_circumference_cm != null
-          ? latest.head_circumference_cm.toFixed(1)
-          : null,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
+      unit:  "cm",
+      value: latest?.head_circumference_cm != null
+        ? latest.head_circumference_cm.toFixed(1)
+        : null,
     },
   ];
 
@@ -307,15 +290,18 @@ export default function GrowthPage() {
       className="min-h-screen bg-app-bg flex flex-col"
       style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom))" }}
     >
-      {/* Header */}
-      <header className="bg-surface px-4 pt-5 pb-4 shadow-sm">
-        <div className="flex items-center justify-between">
+      {/* ── Gradient header ───────────────────────────────────────────── */}
+      <header
+        className="px-4 pt-5 pb-6"
+        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+      >
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-green-900">
               {MESSAGES.UI.NAV_GROWTH}
             </h1>
             {selectedBaby?.birth_date && (
-              <p className="text-sm text-gray-400 mt-0.5">
+              <p className="text-sm text-green-600 mt-0.5 font-medium">
                 {selectedBaby.name} · {calcAge(selectedBaby.birth_date)}
               </p>
             )}
@@ -323,89 +309,102 @@ export default function GrowthPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow"
+            className="flex items-center gap-1.5 bg-white/60 border border-green-200 text-green-700 rounded-full px-4 py-2 text-sm font-semibold transition-colors shadow-sm hover:bg-white"
           >
-            <PlusIcon size={16} className="text-white" />
+            <PlusIcon size={15} className="text-green-600" />
+            บันทึก
           </button>
+        </div>
+
+        {/* ── Metric pills on header ── */}
+        <div className="grid grid-cols-3 gap-2.5 mt-4">
+          {metrics.map((m) => (
+            <div key={m.label} className="bg-white/60 border border-green-100 rounded-2xl px-3 py-3 text-center">
+              <p className="text-[10px] font-bold text-green-500 uppercase tracking-wide mb-1">
+                {m.label}
+              </p>
+              <p className="text-2xl font-bold text-green-900 leading-none">
+                {m.value ?? "—"}
+              </p>
+              <p className="text-[11px] text-green-500 mt-0.5">{m.unit}</p>
+            </div>
+          ))}
         </div>
       </header>
 
       <div className="flex-1 px-4 pt-4 space-y-4 pb-4">
-        {/* Metric Cards */}
-        <div className="grid grid-cols-3 gap-2.5">
-          {metrics.map((m) => (
-            <div key={m.label} className={`${m.bg} rounded-2xl p-3`}>
-              <div className="flex items-center gap-1 mb-1">
-                <span className={m.color}>{m.icon}</span>
-                <span className="text-[9px] font-bold  text-gray-400 uppercase">
-                  {m.label}
-                </span>
-              </div>
-              <p className="text-xl font-bold text-gray-900 leading-tight">
-                {m.value ?? "—"}
-              </p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{m.unit}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* History */}
+        {/* ── History ─────────────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-50">
-            <TrendUpIcon size={16} className="text-gray-400" />
-            <h2 className="text-sm font-bold text-gray-800">
-              ประวัติการเติบโต
-            </h2>
+            <TrendUpIcon size={16} className="text-emerald-500" />
+            <h2 className="text-sm font-bold text-gray-800">ประวัติการเติบโต</h2>
           </div>
 
           {loadingRecords ? (
-            <LoadingSpinner
-              className="text-xs"
-              label="กำลังโหลดประวัติการเติบโต..."
-            />
+            <LoadingSpinner className="text-xs" label="กำลังโหลดประวัติการเติบโต..." />
           ) : records.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <RulerIcon size={32} className="text-gray-200 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm font-medium">
-                {MESSAGES.UI.EMPTY_GROWTH}
-              </p>
-              <p className="text-xs text-gray-300 mt-1">
-                {MESSAGES.UI.EMPTY_GROWTH_HINT}
-              </p>
+            <div className="px-4 py-10 text-center">
+              <p className="text-4xl mb-3">📏</p>
+              <p className="text-gray-500 text-sm font-medium">{MESSAGES.UI.EMPTY_GROWTH}</p>
+              <p className="text-xs text-gray-300 mt-1">{MESSAGES.UI.EMPTY_GROWTH_HINT}</p>
             </div>
           ) : (
             <div>
-              {records.map((r) => (
-                <div
-                  key={r.id}
-                  className="px-4 py-3 border-b border-gray-50 last:border-0"
-                >
-                  <p className="text-xs text-gray-400 mb-1.5">
-                    {formatDate(r.recorded_at)}
-                  </p>
-                  <div className="flex gap-4 flex-wrap">
-                    {r.weight_kg != null && (
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
-                        <ScaleIcon size={12} /> {r.weight_kg.toFixed(3)} kg
-                      </span>
-                    )}
-                    {r.height_cm != null && (
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
-                        <RulerIcon size={12} /> {r.height_cm.toFixed(1)} cm
-                      </span>
-                    )}
-                    {r.head_circumference_cm != null && (
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-purple-600">
-                        <BrainIcon size={12} />{" "}
-                        {r.head_circumference_cm.toFixed(1)} cm
-                      </span>
+              {records.map((r, idx) => {
+                const prev = records[idx + 1];
+                const weightDiff =
+                  r.weight_kg != null && prev?.weight_kg != null
+                    ? r.weight_kg - prev.weight_kg
+                    : null;
+                return (
+                  <div
+                    key={r.id}
+                    className="px-4 py-3.5 border-b border-gray-50 last:border-0"
+                  >
+                    {/* Date row */}
+                    <p className="text-xs text-gray-400 mb-2">{formatDate(r.recorded_at)}</p>
+
+                    {/* Metrics row */}
+                    <div className="flex gap-3 flex-wrap">
+                      {r.weight_kg != null && (
+                        <div className="flex items-center gap-1.5 bg-blue-50 rounded-xl px-2.5 py-1.5">
+                          <ScaleIcon size={12} className="text-blue-400" />
+                          <span className="text-sm font-bold text-blue-600">
+                            {r.weight_kg.toFixed(3)}
+                          </span>
+                          <span className="text-[10px] text-blue-400">kg</span>
+                          {weightDiff !== null && (
+                            <span className={`text-[10px] font-semibold ml-0.5 ${weightDiff >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                              {weightDiff >= 0 ? "+" : ""}{weightDiff.toFixed(3)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {r.height_cm != null && (
+                        <div className="flex items-center gap-1.5 bg-emerald-50 rounded-xl px-2.5 py-1.5">
+                          <RulerIcon size={12} className="text-emerald-400" />
+                          <span className="text-sm font-bold text-emerald-600">
+                            {r.height_cm.toFixed(1)}
+                          </span>
+                          <span className="text-[10px] text-emerald-400">cm</span>
+                        </div>
+                      )}
+                      {r.head_circumference_cm != null && (
+                        <div className="flex items-center gap-1.5 bg-purple-50 rounded-xl px-2.5 py-1.5">
+                          <BrainIcon size={12} className="text-purple-400" />
+                          <span className="text-sm font-bold text-purple-600">
+                            {r.head_circumference_cm.toFixed(1)}
+                          </span>
+                          <span className="text-[10px] text-purple-400">cm</span>
+                        </div>
+                      )}
+                    </div>
+                    {r.notes && (
+                      <p className="text-xs text-gray-400 mt-1.5 italic">{r.notes}</p>
                     )}
                   </div>
-                  {r.notes && (
-                    <p className="text-xs text-gray-400 mt-1">{r.notes}</p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

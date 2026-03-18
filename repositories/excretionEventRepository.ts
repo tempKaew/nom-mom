@@ -31,6 +31,43 @@ export async function getExcretionEventsByBabyId(
 
 // ─── Write ─────────────────────────────────────────────────────────────────────
 
+export async function updateExcretionEvent(
+  id: string,
+  babyId: string,
+  fields: Partial<{
+    type: string;
+    datetime: string;
+    diaper_used: boolean;
+    pee_amount: string | null;
+    pee_color: string | null;
+    poop_color: string | null;
+    poop_texture: string | null;
+    poop_amount: string | null;
+    smell: string | null;
+    rash: boolean | null;
+    leak: boolean | null;
+    note: string | null;
+  }>
+): Promise<ExcretionEvent | null> {
+  const SELECT =
+    "id, baby_id, type, datetime, diaper_used, pee_amount, pee_color, poop_color, poop_texture, poop_amount, smell, rash, leak, note, created_at";
+
+  const { data, error } = await supabaseServer
+    .from("excretion_event")
+    // @ts-expect-error - update type inference with generic Database
+    .update(fields)
+    .eq("id", id)
+    .eq("baby_id", babyId)
+    .select(SELECT)
+    .single();
+
+  if (error || !data) {
+    console.error("[excretionEventRepository] updateExcretionEvent error:", error);
+    return null;
+  }
+  return data as ExcretionEvent;
+}
+
 export async function createExcretionEvent(
   params: CreateExcretionEventPayload & { user_id: string }
 ): Promise<ExcretionEvent | null> {

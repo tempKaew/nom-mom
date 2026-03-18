@@ -24,6 +24,11 @@ export default function Home() {
 
       if (!result.ok) {
         if (result.error === "not_logged_in") return;
+        // External browser with no session → send to web login page
+        if (result.error === "no_web_session") {
+          router.replace("/web-login");
+          return;
+        }
         setErrorKind(result.error === "missing_liff_id" ? "missing_liff_id" : result.error === "no_id_token" ? "profile" : "liff_init");
         setErrorMessage(result.message);
         setStatus("error");

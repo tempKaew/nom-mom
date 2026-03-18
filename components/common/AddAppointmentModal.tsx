@@ -58,6 +58,16 @@ interface Props {
   showStatus?: boolean;
 }
 
+// ─── Note chips ───────────────────────────────────────────────────────────────
+
+const NOTE_CHIPS = [
+  "ต้องไปก่อน 30 นาที",
+  "อย่าลืมสมุดวัคซีน",
+  "อดอาหารก่อนตรวจ",
+  "เตรียมสิทธิประกัน",
+  "นัดติดตามผล",
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -79,16 +89,32 @@ export function AddAppointmentModal({
 }: Props) {
   const [title, setTitle] = useState("");
   const [appointmentAt, setAppointmentAt] = useState(() => {
-    const now = new Date();
-    now.setSeconds(0, 0);
-    return now.toISOString().slice(0, 16);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(8, 0, 0, 0);
+    return tomorrow.toISOString().slice(0, 16);
   });
   const [apptStatus, setApptStatus] = useState<ApptStatus>("upcoming");
   const [doctorName, setDoctorName] = useState("");
   const [hospital, setHospital] = useState("");
-  const [notes, setNotes] = useState("");
+  const [selectedChips, setSelectedChips] = useState<Set<string>>(new Set());
+  const [noteText, setNoteText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const toggleChip = (chip: string) => {
+    setSelectedChips((prev) => {
+      const next = new Set(prev);
+      next.has(chip) ? next.delete(chip) : next.add(chip);
+      return next;
+    });
+  };
+
+  const buildNotes = (): string | null => {
+    const chips = Array.from(selectedChips).join(", ");
+    const manual = noteText.trim();
+    return [chips, manual].filter(Boolean).join(" · ") || null;
+  };
 
   const handleSubmit = async () => {
     if (!idToken || submitting) return;
@@ -111,7 +137,7 @@ export function AddAppointmentModal({
       hospital: hospital.trim() || null,
       appointment_at: new Date(appointmentAt).toISOString(),
       status: apptStatus,
-      notes: notes.trim() || null,
+      notes: buildNotes(),
     });
 
     if (!result.ok) {
@@ -250,10 +276,26 @@ export function AddAppointmentModal({
               หมายเหตุ{" "}
               <span className="font-normal normal-case">(ไม่บังคับ)</span>
             </SectionLabel>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {NOTE_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => toggleChip(chip)}
+                  className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-all active:scale-95 touch-manipulation ${
+                    selectedChips.has(chip)
+                      ? "bg-blue-100 border-blue-400 text-blue-800"
+                      : "border-gray-200 bg-white text-gray-500"
+                  }`}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
             <input
               type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
               placeholder="บันทึกเพิ่มเติม…"
               className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-gray-900 text-sm focus:border-medical focus:ring-1 focus:ring-medical outline-none placeholder:text-gray-300"
             />

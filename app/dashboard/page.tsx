@@ -127,7 +127,13 @@ export default function DashboardPage() {
           loading={appointmentsLoading}
         />
 
-        <RecentSection activities={recentActivities} loading={logsLoading} />
+        <RecentSection
+          activities={recentActivities}
+          loading={logsLoading}
+          idToken={idToken}
+          babyId={selectedBabyId}
+          onEditSuccess={() => refetchLogs(true)}
+        />
       </main>
 
       {/* Modals */}

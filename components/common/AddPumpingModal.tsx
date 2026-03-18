@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { apiPost } from "@/services/api/client";
+import { apiPost, apiPatch } from "@/services/api/client";
 import type {
   PumpingType,
   BreastCondition,
   PainLevel,
   StorageType,
+  PumpingSession,
 } from "@/types/app";
 import {
   ActivityIcon,
@@ -30,6 +31,7 @@ import {
   ChevronRightIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  BreastPumpIcon,
 } from "@/components/icons";
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -278,6 +280,8 @@ function VolumeStepper({
 export interface AddPumpingModalProps {
   idToken: string | null;
   babyId: string;
+  /** Pass to open in edit mode — fields are pre-filled and PATCH is used. */
+  initialData?: PumpingSession;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -285,17 +289,22 @@ export interface AddPumpingModalProps {
 export function AddPumpingModal({
   idToken,
   babyId,
+  initialData,
   onClose,
   onSuccess,
 }: AddPumpingModalProps) {
+  const isEdit = !!initialData;
   const now = new Date();
 
   // ─── Mode & Unit ────────────────────────────────────────────────────────
-  const [inputMode, setInputMode] = useState<InputMode>("timer");
+  // Edit mode always uses manual (no timer for past sessions)
+  const [inputMode, setInputMode] = useState<InputMode>(isEdit ? "manual" : "timer");
   const [unit, setUnit] = useState<Unit>("oz");
 
   // ─── Pumping type (shared, top-level choice) ────────────────────────────
-  const [pumpingType, setPumpingType] = useState<PumpingType>("normal");
+  const [pumpingType, setPumpingType] = useState<PumpingType>(
+    (initialData?.pumping_type as PumpingType) ?? "normal"
+  );
 
   // ─── Timer ──────────────────────────────────────────────────────────────
   const [timerState, setTimerState] = useState<TimerState>("idle");
@@ -305,25 +314,36 @@ export function AddPumpingModal({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ─── Manual time ────────────────────────────────────────────────────────
-  const [date, setDate] = useState(toDateStr(now));
-  const [startTime, setStartTime] = useState(toTimeStr(now));
-  const [endTime, setEndTime] = useState("");
+  const [date, setDate] = useState(() =>
+    initialData ? toDateStr(new Date(initialData.start_time)) : toDateStr(now)
+  );
+  const [startTime, setStartTime] = useState(() =>
+    initialData ? toTimeStr(new Date(initialData.start_time)) : toTimeStr(now)
+  );
+  const [endTime, setEndTime] = useState(() =>
+    initialData?.end_time ? toTimeStr(new Date(initialData.end_time)) : ""
+  );
 
   // ─── Volume ─────────────────────────────────────────────────────────────
-  const [leftMl, setLeftMl] = useState(0);
-  const [rightMl, setRightMl] = useState(0);
+  const [leftMl, setLeftMl] = useState(initialData?.left_volume_ml ?? 0);
+  const [rightMl, setRightMl] = useState(initialData?.right_volume_ml ?? 0);
 
   // ─── Breast status ──────────────────────────────────────────────────────
-  const [breastCondition, setBreastCondition] =
-    useState<BreastCondition | null>(null);
-  const [painLevel, setPainLevel] = useState<PainLevel | null>(null);
+  const [breastCondition, setBreastCondition] = useState<BreastCondition | null>(
+    (initialData?.breast_condition as BreastCondition | null) ?? null
+  );
+  const [painLevel, setPainLevel] = useState<PainLevel | null>(
+    (initialData?.pain_level as PainLevel | null) ?? null
+  );
 
   // ─── Storage ────────────────────────────────────────────────────────────
-  const [storageType, setStorageType] = useState<StorageType>("immediate");
+  const [storageType, setStorageType] = useState<StorageType>(
+    (initialData?.storage_type as StorageType) ?? "immediate"
+  );
 
   // ─── Notes ──────────────────────────────────────────────────────────────
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [noteText, setNoteText] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.note_tags ?? []);
+  const [noteText, setNoteText] = useState(initialData?.note_text ?? "");
 
   // ─── Smart suggest ──────────────────────────────────────────────────────
   const [lastSession, setLastSession] = useState<LastSession | null>(null);
@@ -334,8 +354,9 @@ export function AddPumpingModal({
 
   const totalMl = leftMl + rightMl;
 
-  // ─── Load preferences from localStorage ─────────────────────────────────
+  // ─── Load preferences from localStorage (add mode only) ─────────────────
   useEffect(() => {
+    if (isEdit) return;
     try {
       const saved = localStorage.getItem(LS_LAST);
       if (saved) {
@@ -347,7 +368,7 @@ export function AddPumpingModal({
     } catch {
       // ignore
     }
-  }, []);
+  }, [isEdit]);
 
   // Apply last session defaults to manual end time
   useEffect(() => {
@@ -462,35 +483,41 @@ export function AddPumpingModal({
 
     setSubmitting(true);
 
-    // Persist last session for next time
-    const toSave: LastSession = {
-      pumpingType,
-      durationMinutes: durationMins ?? lastSession?.durationMinutes ?? 15,
-      storageType,
-      unit,
+    const pumpPayload = {
+      baby_id:          babyId,
+      start_time:       startISO,
+      end_time:         endISO,
+      duration_minutes: durationMins,
+      left_volume_ml:   leftMl,
+      right_volume_ml:  rightMl,
+      total_volume_ml:  totalMl,
+      pumping_type:     pumpingType,
+      breast_condition: breastCondition,
+      pain_level:       painLevel,
+      storage_type:     storageType,
+      note_text:        noteText.trim() || null,
+      note_tags:        selectedTags,
+      notes:            null,
     };
-    try {
-      localStorage.setItem(LS_LAST, JSON.stringify(toSave));
-    } catch {
-      // ignore
+
+    // Persist last session for next time (add mode only)
+    if (!isEdit) {
+      const toSave: LastSession = {
+        pumpingType,
+        durationMinutes: durationMins ?? lastSession?.durationMinutes ?? 15,
+        storageType,
+        unit,
+      };
+      try {
+        localStorage.setItem(LS_LAST, JSON.stringify(toSave));
+      } catch {
+        // ignore
+      }
     }
 
-    const result = await apiPost("/api/pumping", idToken, {
-      baby_id: babyId,
-      start_time: startISO,
-      end_time: endISO,
-      duration_minutes: durationMins,
-      left_volume_ml: leftMl,
-      right_volume_ml: rightMl,
-      total_volume_ml: totalMl,
-      pumping_type: pumpingType,
-      breast_condition: breastCondition,
-      pain_level: painLevel,
-      storage_type: storageType,
-      note_text: noteText.trim() || null,
-      note_tags: selectedTags,
-      notes: null,
-    });
+    const result = isEdit
+      ? await apiPatch(`/api/pumping?id=${initialData!.id}`, idToken, pumpPayload)
+      : await apiPost("/api/pumping", idToken, pumpPayload);
 
     if (!result.ok) {
       setError(
@@ -531,7 +558,12 @@ export function AddPumpingModal({
         {/* ── Fixed header ──────────────────────────────────────────────── */}
         <div className="px-5 pt-4 pb-3 flex-shrink-0">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-gray-900">บันทึกการปั๊มนม</h2>
+            <div className="flex items-center gap-2">
+              <BreastPumpIcon size={20} className="text-feeding" />
+              <h2 className="text-lg font-bold text-gray-900">
+                {isEdit ? "แก้ไขการปั๊มนม" : "บันทึกการปั๊มนม"}
+              </h2>
+            </div>
             <button
               type="button"
               onClick={onClose}
@@ -565,8 +597,8 @@ export function AddPumpingModal({
             </button>
           )}
 
-          {/* Mode toggle */}
-          <div className="flex bg-gray-100 rounded-xl p-1">
+          {/* Mode toggle (add mode only — edit always uses manual) */}
+          {!isEdit && <div className="flex bg-gray-100 rounded-xl p-1">
             {(["timer", "manual"] as InputMode[]).map((m) => (
               <button
                 key={m}
@@ -589,7 +621,7 @@ export function AddPumpingModal({
                 )}
               </button>
             ))}
-          </div>
+          </div>}
         </div>
 
         {/* ── Scrollable body ───────────────────────────────────────────── */}

@@ -59,6 +59,39 @@ export async function getPumpingSessionsByBabyId(
   return (data ?? []) as PumpingSessionRow[];
 }
 
+export async function updatePumpingSession(
+  id: string,
+  babyId: string,
+  fields: Partial<{
+    start_time: string;
+    end_time: string | null;
+    duration_minutes: number | null;
+    left_volume_ml: number;
+    right_volume_ml: number;
+    total_volume_ml: number;
+    pumping_type: PumpingType;
+    storage_type: StorageType;
+    note_text: string | null;
+    note_tags: string[];
+    notes: string | null;
+  }>
+): Promise<PumpingSessionRow | null> {
+  const { data, error } = await supabaseServer
+    .from("pumping_sessions")
+    // @ts-expect-error - update type inference with generic Database
+    .update(fields)
+    .eq("id", id)
+    .eq("baby_id", babyId)
+    .select(SELECT_FIELDS)
+    .single();
+
+  if (error || !data) {
+    console.error("[pumpingRepository] updatePumpingSession error:", error);
+    return null;
+  }
+  return data as PumpingSessionRow;
+}
+
 export async function createPumpingSession(params: {
   baby_id: string;
   user_id: string;

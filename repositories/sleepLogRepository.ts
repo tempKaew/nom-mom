@@ -34,6 +34,33 @@ export async function getSleepLogsByBabyId(
   return (data ?? []) as SleepLogRow[];
 }
 
+export async function updateSleepLog(
+  id: string,
+  babyId: string,
+  fields: {
+    type?: string;
+    started_at?: string;
+    ended_at?: string | null;
+    duration_minutes?: number | null;
+    notes?: string | null;
+  }
+): Promise<SleepLogRow | null> {
+  const { data, error } = await supabaseServer
+    .from("sleep_logs")
+    // @ts-expect-error - update type inference with generic Database
+    .update(fields)
+    .eq("id", id)
+    .eq("baby_id", babyId)
+    .select(SELECT_FIELDS)
+    .single();
+
+  if (error || !data) {
+    console.error("[sleepLogRepository] updateSleepLog error:", error);
+    return null;
+  }
+  return data as SleepLogRow;
+}
+
 export async function createSleepLog(params: {
   baby_id: string;
   user_id: string;

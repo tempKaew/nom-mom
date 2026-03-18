@@ -20,6 +20,12 @@ import { MESSAGES } from "@/constants/messages";
 
 // ─── Shared Activity type ─────────────────────────────────────────────────────
 
+export type ActivitySource =
+  | { kind: "milk";      data: MilkLog }
+  | { kind: "excretion"; data: ExcretionEvent }
+  | { kind: "sleep";     data: SleepLog }
+  | { kind: "pumping";   data: PumpingSession };
+
 export type Activity = {
   id: string;
   category: "feeding" | "diaper" | "sleep" | "pumping";
@@ -29,31 +35,47 @@ export type Activity = {
   label: string;
   detail: string;
   notes?: string | null;
+  source: ActivitySource;
 };
 
 // ─── Category styles (bg, text, detail color) ────────────────────────────────
 
 export const CATEGORY_STYLES: Record<
   "feeding" | "diaper" | "sleep" | "pumping",
-  { bg: string; text: string; detail: string }
+  { bg: string; text: string; detail: string; dot: string }
 > = {
   feeding: {
-    bg: "bg-feeding-bg",
-    text: "text-feeding",
+    bg:     "bg-white shadow-sm border-l-[3px] border-blue-400",
+    text:   "text-feeding",
     detail: "text-feeding-muted",
+    dot:    "bg-blue-400",
   },
   diaper: {
-    bg: "bg-diaper-bg",
-    text: "text-diaper",
+    bg:     "bg-white shadow-sm border-l-[3px] border-amber-400",
+    text:   "text-diaper",
     detail: "text-diaper-muted",
+    dot:    "bg-amber-400",
   },
-  sleep: { bg: "bg-sleep-bg", text: "text-sleep", detail: "text-sleep-muted" },
+  sleep: {
+    bg:     "bg-white shadow-sm border-l-[3px] border-purple-400",
+    text:   "text-sleep",
+    detail: "text-sleep-muted",
+    dot:    "bg-purple-400",
+  },
   pumping: {
-    bg: "bg-feeding-bg",
-    text: "text-feeding",
+    bg:     "bg-white shadow-sm border-l-[3px] border-sky-400",
+    text:   "text-feeding",
     detail: "text-feeding-muted",
+    dot:    "bg-sky-400",
   },
 };
+
+// ─── Unit helpers ─────────────────────────────────────────────────────────────
+
+function mlToOz(ml: number | null | undefined): string | null {
+  if (!ml) return null;
+  return `${(ml / 29.5735).toFixed(1)} oz`;
+}
 
 // ─── Milk type config ─────────────────────────────────────────────────────────
 
@@ -61,11 +83,25 @@ export const MILK_TYPE_CONFIG: Record<
   string,
   { label: string; icon: React.ReactNode; detail: (l: MilkLog) => string }
 > = {
+  latch: {
+    label: "เข้าเต้า",
+    icon: <BabyIcon size={22} />,
+    detail: (l) =>
+      [
+        mlToOz(l.amount_ml),
+        l.duration_minutes ? `${l.duration_minutes} นาที` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") || "เข้าเต้า",
+  },
   breast: {
     label: MESSAGES.UI.ACTIVITY_BREASTFEED,
     icon: <BabyIcon size={22} />,
     detail: (l) =>
-      [l.duration_minutes ? `${l.duration_minutes} นาที` : null]
+      [
+        mlToOz(l.amount_ml),
+        l.duration_minutes ? `${l.duration_minutes} นาที` : null,
+      ]
         .filter(Boolean)
         .join(" · ") || MESSAGES.UI.ACTIVITY_BREASTFEED,
   },
@@ -74,7 +110,7 @@ export const MILK_TYPE_CONFIG: Record<
     icon: <BottleMilkIcon size={22} />,
     detail: (l) =>
       [
-        l.amount_ml ? `${l.amount_ml} ml` : null,
+        mlToOz(l.amount_ml),
         l.duration_minutes ? `${l.duration_minutes} นาที` : null,
       ]
         .filter(Boolean)
@@ -85,7 +121,7 @@ export const MILK_TYPE_CONFIG: Record<
     icon: <BreastPumpIcon size={22} />,
     detail: (l) =>
       [
-        l.amount_ml ? `${l.amount_ml} ml` : null,
+        mlToOz(l.amount_ml),
         l.duration_minutes ? `${l.duration_minutes} นาที` : null,
       ]
         .filter(Boolean)
@@ -95,22 +131,45 @@ export const MILK_TYPE_CONFIG: Record<
     label: MESSAGES.UI.ACTIVITY_FORMULA,
     icon: <BottleMilkIcon size={22} />,
     detail: (l) =>
-      l.amount_ml ? `${l.amount_ml} ml` : MESSAGES.UI.ACTIVITY_FORMULA,
+      [
+        mlToOz(l.amount_ml),
+        l.duration_minutes ? `${l.duration_minutes} นาที` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") || MESSAGES.UI.ACTIVITY_FORMULA,
   },
   cow_milk: {
     label: "นมวัว",
     icon: <BottleMilkIcon size={22} />,
-    detail: (l) => (l.amount_ml ? `${l.amount_ml} ml นมวัว` : "นมวัว"),
+    detail: (l) =>
+      [
+        mlToOz(l.amount_ml),
+        l.duration_minutes ? `${l.duration_minutes} นาที` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") || "นมวัว",
   },
   plant_milk: {
     label: "นมพืช",
     icon: <BottleMilkIcon size={22} />,
-    detail: (l) => (l.amount_ml ? `${l.amount_ml} ml นมพืช` : "นมพืช"),
+    detail: (l) =>
+      [
+        mlToOz(l.amount_ml),
+        l.duration_minutes ? `${l.duration_minutes} นาที` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") || "นมพืช",
   },
   other: {
     label: "นมอื่นๆ",
     icon: <BottleMilkIcon size={22} />,
-    detail: (l) => (l.amount_ml ? `${l.amount_ml} ml` : "นมอื่นๆ"),
+    detail: (l) =>
+      [
+        mlToOz(l.amount_ml),
+        l.duration_minutes ? `${l.duration_minutes} นาที` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") || "นมอื่นๆ",
   },
 };
 
@@ -276,7 +335,7 @@ function pumpingDetail(s: PumpingSession): string {
   if (s.pumping_type && s.pumping_type !== "normal") {
     parts.push(PUMPING_TYPE_LABELS[s.pumping_type] ?? s.pumping_type);
   }
-  if (s.total_volume_ml > 0) parts.push(`${s.total_volume_ml} ml`);
+  if (s.total_volume_ml > 0) parts.push(`${(s.total_volume_ml / 29.5735).toFixed(1)} oz`);
   if (s.duration_minutes) parts.push(`${s.duration_minutes} นาที`);
   if (s.storage_type && s.storage_type !== "immediate") {
     parts.push(STORAGE_TYPE_LABELS[s.storage_type] ?? s.storage_type);
@@ -301,6 +360,7 @@ export function buildActivities(
       label: cfg.label,
       detail: cfg.detail(l),
       notes: l.notes,
+      source: { kind: "milk", data: l } satisfies ActivitySource,
     };
   });
 
@@ -315,6 +375,7 @@ export function buildActivities(
       label: MESSAGES.UI.ACTIVITY_EXCRETION,
       detail: excretionDetail(e),
       notes: e.note,
+      source: { kind: "excretion", data: e } satisfies ActivitySource,
     };
   });
 
@@ -327,6 +388,7 @@ export function buildActivities(
     label: l.type === "night" ? "นอนกลางคืน" : "งีบหลับ",
     detail: sleepDurationLabel(l),
     notes: l.notes,
+    source: { kind: "sleep", data: l } satisfies ActivitySource,
   }));
 
   const pumping: Activity[] = pumpingSessions.map((s) => ({
@@ -338,6 +400,7 @@ export function buildActivities(
     label: "ปั๊มนม",
     detail: pumpingDetail(s),
     notes: s.notes,
+    source: { kind: "pumping", data: s } satisfies ActivitySource,
   }));
 
   return [...feeding, ...excretion, ...sleep, ...pumping].sort(

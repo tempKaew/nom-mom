@@ -4,6 +4,7 @@ import { isMemberOfBaby } from "@/repositories/memberRepository";
 import {
   getExcretionEventsByBabyId,
   createExcretionEvent,
+  updateExcretionEvent,
 } from "@/repositories/excretionEventRepository";
 import { parseLimitParam } from "@/repositories/milkLogRepository";
 import { MESSAGES } from "@/constants/messages";
@@ -86,5 +87,31 @@ export async function POST(request: NextRequest) {
     console.error("[api/excretion-event] POST error:", err);
     const message = err instanceof Error ? err.message : MESSAGES.GENERAL.INTERNAL_ERROR;
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const auth = await requireLineAuth(request);
+    if (auth instanceof Response) return auth;
+
+    const id = request.nextUrl.searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+    const body = (await request.json()) as Record<string, unknown> & { baby_id?: string };
+
+    if (!body.baby_id) return NextResponse.json({ error: MESSAGES.LOGS.BABY_ID_REQUIRED }, { status: 400 });
+
+    const isMember = await isMemberOfBaby(auth.userId, body.baby_id as string);
+    if (!isMember) return NextResponse.json({ error: MESSAGES.BABY.NOT_FOUND_OR_ACCESS_DENIED }, { status: 404 });
+
+    const { baby_id, ...fields } = body;
+    const event = await updateExcretionEvent(id, baby_id as string, fields);
+    if (!event) return NextResponse.json({ error: "แก้ไขไม่สำเร็จ" }, { status: 502 });
+
+    return NextResponse.json(event);
+  } catch (err) {
+    console.error("[api/excretion-event] PATCH error:", err);
+    return NextResponse.json({ error: MESSAGES.GENERAL.INTERNAL_ERROR }, { status: 500 });
   }
 }

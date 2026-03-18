@@ -4,6 +4,7 @@ import { isMemberOfBaby } from "@/repositories/memberRepository";
 import {
   getSleepLogsByBabyId,
   createSleepLog,
+  updateSleepLog,
 } from "@/repositories/sleepLogRepository";
 import { parseLimitParam } from "@/repositories/milkLogRepository";
 import { MESSAGES } from "@/constants/messages";
@@ -104,5 +105,38 @@ export async function POST(request: NextRequest) {
     const message =
       err instanceof Error ? err.message : MESSAGES.GENERAL.INTERNAL_ERROR;
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const auth = await requireLineAuth(request);
+    if (auth instanceof Response) return auth;
+
+    const id = request.nextUrl.searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+    const body = (await request.json()) as {
+      baby_id?: string;
+      type?: string;
+      started_at?: string;
+      ended_at?: string | null;
+      duration_minutes?: number | null;
+      notes?: string | null;
+    };
+
+    if (!body.baby_id) return NextResponse.json({ error: MESSAGES.LOGS.BABY_ID_REQUIRED }, { status: 400 });
+
+    const isMember = await isMemberOfBaby(auth.userId, body.baby_id);
+    if (!isMember) return NextResponse.json({ error: MESSAGES.BABY.NOT_FOUND_OR_ACCESS_DENIED }, { status: 404 });
+
+    const { baby_id, ...fields } = body;
+    const log = await updateSleepLog(id, baby_id, fields);
+    if (!log) return NextResponse.json({ error: "แก้ไขไม่สำเร็จ" }, { status: 502 });
+
+    return NextResponse.json(log);
+  } catch (err) {
+    console.error("[api/sleep] PATCH error:", err);
+    return NextResponse.json({ error: MESSAGES.GENERAL.INTERNAL_ERROR }, { status: 500 });
   }
 }

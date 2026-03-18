@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { initLiffAndGetToken } from "@/lib/line";
-import { apiGet } from "@/services/api/client";
+import { initLiffAndGetToken, refreshLiffToken, isLineInAppBrowser } from "@/lib/line";
+import { apiGet, setTokenRefresher, clearTokenRefresher } from "@/services/api/client";
 import type { MeData } from "@/types/app";
 import { getBaseUrl } from "@/utils/url";
 import { authHeaders } from "@/services/api/client";
@@ -41,7 +41,13 @@ async function fetchAuthData(): Promise<
   const liffResult = await initLiffAndGetToken(true);
 
   if (!liffResult.ok) {
-    if (liffResult.error === "not_logged_in") return { redirect: "/" };
+    if (
+      liffResult.error === "not_logged_in" ||
+      liffResult.error === "no_web_session"
+    ) {
+      // Redirect to the correct login page based on browser type
+      return { redirect: isLineInAppBrowser() ? "/" : "/web-login" };
+    }
     return { error: liffResult.message };
   }
 
@@ -82,6 +88,23 @@ export function useDashboardAuth() {
   );
   const [data, setData] = useState<MeData | null>(() => _cache?.data ?? null);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Register a token refresher with the API client so any 401 is silently
+  // retried with a fresh LIFF token.  Cleaned up when the hook unmounts.
+  useEffect(() => {
+    if (!idToken) return;
+
+    setTokenRefresher(async () => {
+      const fresh = await refreshLiffToken();
+      if (fresh) {
+        setIdToken(fresh);
+        if (_cache) _cache.idToken = fresh;
+      }
+      return fresh;
+    });
+
+    return () => clearTokenRefresher();
+  }, [idToken]);
 
   const refetchMe = useCallback(async (): Promise<MeData | null> => {
     const token = idToken;

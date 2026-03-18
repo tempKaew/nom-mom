@@ -160,43 +160,51 @@ function InvitesContent() {
   const selectedBaby = ownerBabies.find((b) => b.id === selectedBabyId);
 
   return (
-    <div className="min-h-screen bg-app-bg-secondary">
-      {/* Header */}
-      <header className="bg-surface px-4 pt-5 pb-4 shadow-sm flex items-center gap-3">
+    <div className="min-h-screen bg-app-bg-secondary flex flex-col">
+      {/* ── Gradient header ───────────────────────────────────────────── */}
+      <header
+        className="px-4 pt-5 pb-5 flex items-center gap-3"
+        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+      >
         <Link
           href="/dashboard"
           aria-label="กลับ"
-          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors shrink-0"
+          className="w-8 h-8 rounded-full bg-white/60 border border-green-200 flex items-center justify-center shrink-0"
         >
-          <ChevronLeftIcon size={16} className="text-gray-600" />
+          <ChevronLeftIcon size={16} className="text-green-700" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-gray-900">จัดการรหัสเชิญ</h1>
+          <h1 className="text-lg font-bold text-green-900">จัดการรหัสเชิญ</h1>
+          {selectedBaby && (
+            <p className="text-xs text-green-600 mt-0.5">สำหรับ {selectedBaby.name}</p>
+          )}
         </div>
       </header>
 
-      <main className="px-4 pt-5 pb-10 max-w-md mx-auto space-y-3">
+      <main className="flex-1 px-4 pt-5 pb-10 max-w-md mx-auto w-full space-y-3">
         {ownerBabies.length === 0 ? (
-          <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-gray-500 text-sm">
-              คุณยังไม่มีเด็กที่คุณเป็นผู้สร้าง จึงไม่สามารถสร้างรหัสเชิญได้
+          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <p className="text-3xl mb-3">🔗</p>
+            <p className="text-gray-500 text-sm font-medium">
+              คุณยังไม่มีเด็กที่คุณเป็นผู้สร้าง
             </p>
+            <p className="text-gray-300 text-xs mt-1 mb-4">จึงไม่สามารถสร้างรหัสเชิญได้</p>
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="mt-3 text-blue-500 text-sm font-medium hover:underline"
+              className="text-green-600 text-sm font-semibold"
             >
               {MESSAGES.UI.BACK_TO_DASHBOARD}
             </button>
           </div>
         ) : (
           <>
-            {/* Baby selector (only shown if more than 1 owner baby) */}
+            {/* Baby selector */}
             {ownerBabies.length > 1 && (
-              <div className="bg-surface rounded-2xl shadow-sm p-4">
+              <div className="bg-white rounded-2xl shadow-sm p-4">
                 <label
                   htmlFor="babySelect"
-                  className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5"
+                  className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5"
                 >
                   เลือกเด็ก
                 </label>
@@ -204,12 +212,10 @@ function InvitesContent() {
                   id="babySelect"
                   value={selectedBabyId ?? ""}
                   onChange={(e) => setSelectedBabyId(e.target.value || null)}
-                  className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+                  className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400"
                 >
                   {ownerBabies.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
+                    <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
               </div>
@@ -218,17 +224,17 @@ function InvitesContent() {
             {selectedBaby && (
               <>
                 {/* Create new invite */}
-                <div className="bg-surface rounded-2xl shadow-sm p-4">
-                  <p className="text-xs font-bold uppercase  text-gray-400 mb-3">
+                <div className="bg-white rounded-2xl shadow-sm p-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
                     สร้างรหัสเชิญใหม่
                   </p>
                   <form onSubmit={handleCreateInvite} className="space-y-3">
                     <div>
                       <label
                         htmlFor="label"
-                        className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5"
+                        className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5"
                       >
-                        ชื่อผู้รับ (เช่น ป้า แม่ พ่อ)
+                        ชื่อผู้รับ
                       </label>
                       <input
                         id="label"
@@ -236,19 +242,22 @@ function InvitesContent() {
                         value={formLabel}
                         onChange={(e) => setFormLabel(e.target.value)}
                         placeholder="เช่น ป้า, แม่, พ่อ, คุณตา"
-                        className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:bg-white transition-colors"
+                        className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
                         required
                       />
                     </div>
 
                     {formError && (
-                      <p className="text-xs text-red-500">{formError}</p>
+                      <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                        <p className="text-xs text-red-600">{formError}</p>
+                      </div>
                     )}
 
                     <button
                       type="submit"
                       disabled={formSubmitting || !formLabel.trim()}
-                      className="w-full rounded-2xl bg-blue-500 py-3 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-50 shadow-sm transition-colors"
+                      className="w-full rounded-2xl py-3 text-sm font-bold text-white shadow-sm active:scale-[0.98] transition-transform disabled:opacity-50"
+                      style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }}
                     >
                       {formSubmitting ? "กำลังสร้าง…" : "สร้างรหัสเชิญ"}
                     </button>
@@ -256,48 +265,42 @@ function InvitesContent() {
 
                   {/* New token result */}
                   {newToken && (
-                    <div className="mt-4 bg-blue-50 rounded-2xl p-4">
+                    <div className="mt-4 bg-green-50 border border-green-100 rounded-2xl p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">
-                          รหัสเชิญที่สร้างแล้ว
+                        <p className="text-xs font-bold text-green-700 uppercase tracking-wide">
+                          รหัสเชิญที่สร้างแล้ว ✓
                         </p>
                         <CopyButton token={newToken} />
                       </div>
-                      <p className="font-mono text-xs text-blue-800 break-all bg-white rounded-xl p-3">
+                      <p className="font-mono text-xs text-green-800 break-all bg-white rounded-xl p-3 border border-green-100">
                         {newToken}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Existing invites */}
-                <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+                {/* Existing invites list */}
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-50">
-                    <p className="text-xs font-bold uppercase  text-gray-400">
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
                       รหัสเชิญที่มีอยู่
                     </p>
                   </div>
 
                   {invitesLoading ? (
                     <div className="flex items-center justify-center py-8">
-                      <div className="w-5 h-5 border-2 border-blue-300 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
                     </div>
                   ) : invites.length === 0 ? (
                     <div className="px-4 py-8 text-center">
-                      <p className="text-gray-400 text-sm">
-                        {MESSAGES.UI.EMPTY_INVITES}
-                      </p>
+                      <p className="text-gray-400 text-sm">{MESSAGES.UI.EMPTY_INVITES}</p>
                     </div>
                   ) : (
                     <ul>
                       {invites.map((inv, i) => (
                         <li
                           key={inv.id}
-                          className={`px-4 py-3 ${
-                            i < invites.length - 1
-                              ? "border-b border-gray-50"
-                              : ""
-                          }`}
+                          className={`px-4 py-3.5 ${i < invites.length - 1 ? "border-b border-gray-50" : ""}`}
                         >
                           <div className="flex items-start justify-between gap-2 mb-1.5">
                             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -306,16 +309,15 @@ function InvitesContent() {
                               </span>
                               <StatusBadge status={inv.status} />
                             </div>
-                            <CopyButton token={inv.token} />
+                            {inv.status === "active" && <CopyButton token={inv.token} />}
                           </div>
-                          <p className="font-mono text-[11px] text-gray-400 break-all leading-relaxed">
+                          <p className={`font-mono text-[11px] break-all leading-relaxed ${
+                            inv.status === "active" ? "text-gray-500" : "text-gray-300 line-through"
+                          }`}>
                             {inv.token}
                           </p>
                           <p className="text-[10px] text-gray-300 mt-1">
-                            หมดอายุ{" "}
-                            {new Date(inv.expires_at).toLocaleDateString(
-                              "th-TH",
-                            )}
+                            หมดอายุ {new Date(inv.expires_at).toLocaleDateString("th-TH")}
                           </p>
                         </li>
                       ))}

@@ -7,6 +7,7 @@
 
 export {
   // Navigation & UI
+  LogOut as LogOutIcon,
   Home as HomeIcon,
   Clock as ClockIcon,
   BarChart2 as BarChartIcon,

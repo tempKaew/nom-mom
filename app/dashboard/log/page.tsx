@@ -9,14 +9,12 @@ import {
   ErrorView,
   BottomNav,
   SwitchBabySheet,
+  EditActivityModal,
 } from "@/components/common";
-import { formatTime, formatDateGroup } from "@/utils/time";
+import { ActivityCard } from "@/components/activity/ActivityCard";
+import { formatDateGroup } from "@/utils/time";
 import { CalendarIcon } from "@/components/icons";
-import {
-  CATEGORY_STYLES,
-  buildActivities,
-  type Activity,
-} from "@/config/activityConfig";
+import { buildActivities, type Activity } from "@/config/activityConfig";
 import { MESSAGES } from "@/constants/messages";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -122,6 +120,7 @@ export default function LogPage() {
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
   const [showSwitchBaby, setShowSwitchBaby] = useState(false);
+  const [editActivity, setEditActivity] = useState<Activity | null>(null);
 
   const today = toLocalDateString(new Date());
 
@@ -186,51 +185,50 @@ export default function LogPage() {
       className="min-h-screen bg-app-bg flex flex-col"
       style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom))" }}
     >
-      {/* Header */}
-      <header className="bg-white px-4 pt-5 pb-3 shadow-sm sticky top-0 z-10 space-y-3">
+      {/* ── Gradient header ─────────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-10 px-4 pt-5 pb-3 space-y-3"
+        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+      >
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-green-900">
             {MESSAGES.UI.SECTION_ACTIVITY_LOG}
           </h1>
 
-          {/* Date range filter */}
-          <div className="space-y-2">
-            <div className="flex gap-1 overflow-x-auto scrollbar-none">
-              {DATE_PRESETS.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => handlePresetChange(p.key)}
-                  className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    datePreset === p.key
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {p.key === "custom" && <CalendarIcon size={13} />}
-                  {p.label}
-                </button>
-              ))}
-            </div>
+          {/* Date range presets */}
+          <div className="flex gap-1 overflow-x-auto scrollbar-none">
+            {DATE_PRESETS.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => handlePresetChange(p.key)}
+                className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  datePreset === p.key
+                    ? "bg-green-700 text-white shadow-sm"
+                    : "bg-white/60 text-green-700 border border-green-200 hover:bg-white"
+                }`}
+              >
+                {p.key === "custom" && <CalendarIcon size={12} />}
+                {p.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Custom date inputs */}
         {datePreset === "custom" && (
           <div className="flex items-center gap-2">
-            {/* scale wrapper: iOS Safari enforces min 16px font on inputs,
-                scaling down the container lets us render visually smaller */}
             <div className="flex-1 overflow-hidden">
               <input
                 type="date"
                 value={customFrom}
                 max={customTo || today}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="w-full origin-left scale-[0.835] -ml-0 border border-gray-200 rounded-full px-3 py-1 focus:outline-none text-gray-600 focus:ring-2 focus:ring-blue-400"
+                className="w-full origin-left scale-[0.835] bg-white/60 border border-green-200 text-green-800 rounded-full px-3 py-1 focus:outline-none focus:border-green-400"
                 style={{ display: "block" }}
               />
             </div>
-            <span className="text-gray-400 text-xs shrink-0">–</span>
+            <span className="text-green-400 text-xs shrink-0">–</span>
             <div className="flex-1 overflow-hidden">
               <input
                 type="date"
@@ -238,14 +236,14 @@ export default function LogPage() {
                 min={customFrom}
                 max={today}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="w-full origin-left scale-[0.835] -ml-0 border border-gray-200 rounded-full px-3 py-1 focus:outline-none text-gray-600 focus:ring-2 focus:ring-blue-400"
+                className="w-full origin-left scale-[0.835] bg-white/60 border border-green-200 text-green-800 rounded-full px-3 py-1 focus:outline-none focus:border-green-400"
                 style={{ display: "block" }}
               />
             </div>
           </div>
         )}
 
-        {/* Category filter tabs */}
+        {/* Category filter chips */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-none">
           {CATEGORY_FILTERS.map((f) => {
             const isActive = categoryFilter === f.key;
@@ -254,10 +252,10 @@ export default function LogPage() {
                 key={f.key}
                 type="button"
                 onClick={() => setCategoryFilter(f.key)}
-                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   isActive
-                    ? "bg-indigo-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-green-700 text-white shadow-sm"
+                    : "bg-white/60 text-green-700 border border-green-200 hover:bg-white"
                 }`}
               >
                 {f.label}
@@ -267,66 +265,65 @@ export default function LogPage() {
         </div>
       </header>
 
-      {/* Content */}
+      {/* ── Content ─────────────────────────────────────────────────────── */}
       <div className="flex-1 px-4 pt-4">
         {logsLoading ? (
           <LoadingSpinner className="text-xs" label="กำลังโหลดกิจกรรม..." />
         ) : !isCustomValid ? (
-          <div className="bg-surface rounded-2xl p-8 text-center mt-4">
+          <div className="bg-white rounded-2xl p-8 text-center mt-2 shadow-sm">
             <p className="text-gray-400 text-sm">
               กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดให้ถูกต้อง
             </p>
           </div>
         ) : groups.length === 0 ? (
-          <div className="bg-surface rounded-2xl p-8 text-center mt-4">
-            <p className="text-gray-400 text-sm">{MESSAGES.UI.EMPTY_RECORDS}</p>
+          <div className="bg-white rounded-2xl p-10 text-center mt-2 shadow-sm">
+            <p className="text-3xl mb-3">📋</p>
+            <p className="text-gray-500 text-sm font-medium">
+              {MESSAGES.UI.EMPTY_RECORDS}
+            </p>
+            <p className="text-gray-300 text-xs mt-1">
+              ยังไม่มีกิจกรรมในช่วงเวลานี้
+            </p>
           </div>
         ) : (
           <div className="space-y-5 pb-4">
             {groups.map((group) => (
               <div key={group.date}>
-                <p className="text-[11px] font-bold text-gray-400 uppercase mb-2 px-1">
-                  {formatDateGroup(group.date)}
-                </p>
+                {/* Date group label */}
+                <div className="flex items-center gap-2 mb-2.5 px-1">
+                  <div className="h-px flex-1 bg-gray-200" />
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
+                    {formatDateGroup(group.date)}
+                  </span>
+                  <div className="h-px flex-1 bg-gray-200" />
+                </div>
                 <div className="space-y-2">
-                  {group.items.map((act) => {
-                    const style = CATEGORY_STYLES[act.category];
-                    return (
-                      <div key={act.id} className="flex items-start gap-3">
-                        <span className="text-[11px] text-gray-400 pt-3.5 w-[58px] shrink-0 text-right leading-tight">
-                          {formatTime(act.logged_at)}
-                        </span>
-                        <div
-                          className={`flex-1 ${style.bg} rounded-2xl px-4 py-3`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-base leading-none">
-                              {act.icon}
-                            </span>
-                            <span
-                              className={`text-sm font-semibold ${style.text}`}
-                            >
-                              {act.label}
-                            </span>
-                          </div>
-                          <p className={`text-xs mt-0.5 ${style.detail}`}>
-                            {act.detail}
-                          </p>
-                          {act.notes && (
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              {act.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {group.items.map((act) => (
+                    <ActivityCard
+                      key={act.id}
+                      activity={act}
+                      onEdit={setEditActivity}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {editActivity && selectedBabyId && (
+        <EditActivityModal
+          activity={editActivity}
+          babyId={selectedBabyId}
+          idToken={idToken}
+          onClose={() => setEditActivity(null)}
+          onSuccess={() => {
+            setEditActivity(null);
+            refetchLogs(true);
+          }}
+        />
+      )}
 
       {showSwitchBaby && (
         <SwitchBabySheet

@@ -4,4 +4,14 @@ export {
   type LineIdTokenPayload,
   LINE_AUTH_ERROR,
 } from "./auth";
-export { initLiffAndGetToken, getLiffCachedToken, type LiffInitResult } from "./liffClient";
+export {
+  initLiffAndGetToken,
+  getLiffCachedToken,
+  clearLiffTokenCache,
+  refreshLiffToken,
+  isTokenExpired,
+  isLineInAppBrowser,
+  storeWebToken,
+  clearWebToken,
+  type LiffInitResult,
+} from "./liffClient";

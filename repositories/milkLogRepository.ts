@@ -43,6 +43,33 @@ export async function getMilkLogsByBabyId(
   return (data ?? []) as MilkLogRow[];
 }
 
+export async function updateMilkLog(
+  id: string,
+  babyId: string,
+  fields: {
+    type?: string;
+    amount_ml?: number | null;
+    duration_minutes?: number | null;
+    notes?: string | null;
+    logged_at?: string;
+  }
+): Promise<MilkLogRow | null> {
+  const { data, error } = await supabaseServer
+    .from("milk_logs")
+    // @ts-expect-error - update type inference with generic Database
+    .update(fields)
+    .eq("id", id)
+    .eq("baby_id", babyId)
+    .select("id, type, amount_ml, duration_minutes, logged_at, notes")
+    .single();
+
+  if (error || !data) {
+    console.error("[milkLogRepository] updateMilkLog error:", error);
+    return null;
+  }
+  return data as MilkLogRow;
+}
+
 export async function createMilkLog(params: {
   baby_id: string;
   user_id: string;
@@ -50,6 +77,7 @@ export async function createMilkLog(params: {
   amount_ml: number | null;
   duration_minutes: number | null;
   notes: string | null;
+  logged_at?: string | null;
 }): Promise<MilkLogRow | null> {
   const { data, error } = await supabaseServer
     .from("milk_logs")
@@ -61,6 +89,7 @@ export async function createMilkLog(params: {
       amount_ml: params.amount_ml,
       duration_minutes: params.duration_minutes,
       notes: params.notes,
+      ...(params.logged_at ? { logged_at: params.logged_at } : {}),
     })
     .select("id, type, amount_ml, duration_minutes, logged_at, notes")
     .single();
