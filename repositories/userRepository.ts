@@ -70,6 +70,21 @@ export async function getUserPinHash(
   return (data as { pin_hash: string | null }).pin_hash ?? null;
 }
 
+/** Get pin_hash + line_user_id by database user UUID (used in web-login flow). */
+export async function getUserAuthById(
+  userId: string,
+): Promise<{ pin_hash: string | null; line_user_id: string | null } | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabaseServer as any)
+    .from("users")
+    .select("pin_hash, line_user_id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as { pin_hash: string | null; line_user_id: string | null };
+}
+
 export async function setUserPinHash(
   lineUserId: string,
   pinHash: string,

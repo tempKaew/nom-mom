@@ -160,7 +160,7 @@ function PinSetupSheet({
           <h2 className="text-base font-bold text-gray-900">ตั้ง PIN สำหรับ Web</h2>
         </div>
         <p className="text-xs text-gray-400 mb-5 pl-12">
-          ใช้เข้าสู่ระบบในเบราว์เซอร์ทั่วไป ด้วย LINE User ID + PIN 6 หลัก
+          ใช้เข้าสู่ระบบในเบราว์เซอร์ทั่วไป ด้วย User ID + PIN 6 หลัก
         </p>
 
         {done ? (
@@ -205,9 +205,9 @@ function PinSetupSheet({
   );
 }
 
-// ─── Line UID display ─────────────────────────────────────────────────────────
+// ─── User ID display (for web login) ─────────────────────────────────────────
 
-function LineUidCard({ uid }: { uid: string }) {
+function UserIdCard({ uid }: { uid: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -224,7 +224,7 @@ function LineUidCard({ uid }: { uid: string }) {
       </div>
       <div className="px-4 py-4 space-y-3">
         <div>
-          <p className="text-xs text-gray-400 mb-1">LINE User ID (สำหรับ Web Login)</p>
+          <p className="text-xs text-gray-400 mb-1">User ID (สำหรับ Web Login)</p>
           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
             <code className="flex-1 text-xs text-gray-600 font-mono break-all">{uid}</code>
             <button
@@ -237,7 +237,7 @@ function LineUidCard({ uid }: { uid: string }) {
           </div>
         </div>
         <p className="text-[11px] text-gray-400 leading-relaxed">
-          บันทึก LINE User ID นี้ไว้ แล้วตั้ง PIN ด้านล่าง เพื่อเข้าสู่ระบบในเบราว์เซอร์อื่น
+          บันทึก User ID นี้ไว้ แล้วตั้ง PIN ด้านล่าง เพื่อเข้าสู่ระบบในเบราว์เซอร์อื่น
         </p>
       </div>
     </div>
@@ -432,9 +432,9 @@ export default function ProfilePage() {
         )}
 
         {/* Web login section — only visible in LINE browser so user can set their PIN */}
-        {inLineBrowser && user.line_user_id && (
+        {inLineBrowser && user.id && (
           <>
-            <LineUidCard uid={user.line_user_id} />
+            <UserIdCard uid={user.id} />
 
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-50">

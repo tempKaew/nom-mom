@@ -64,21 +64,21 @@ function PinInput({
 export default function WebLoginPage() {
   const router = useRouter();
 
-  const [lineUserId, setLineUserId] = useState("");
+  const [userId, setUserId] = useState("");
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Auto-submit when 6 digits entered
   useEffect(() => {
-    if (pin.length === 6 && lineUserId.trim()) {
+    if (pin.length === 6 && userId.trim()) {
       handleLogin();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin]);
 
   const handleLogin = async () => {
-    if (!lineUserId.trim() || pin.length !== 6) return;
+    if (!userId.trim() || pin.length !== 6) return;
     setLoading(true);
     setError("");
 
@@ -86,7 +86,7 @@ export default function WebLoginPage() {
       const res = await fetch("/api/auth/web-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ line_user_id: lineUserId.trim(), pin }),
+        body: JSON.stringify({ user_id: userId.trim(), pin }),
       });
       const json = (await res.json()) as { token?: string; error?: string };
 
@@ -126,16 +126,16 @@ export default function WebLoginPage() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-sm px-6 py-6 space-y-5">
-          {/* LINE User ID */}
+          {/* User ID */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-              LINE User ID
+              User ID
             </label>
             <input
               type="text"
-              value={lineUserId}
-              onChange={(e) => setLineUserId(e.target.value)}
-              placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               disabled={loading}
               autoCapitalize="none"
               autoCorrect="off"
@@ -143,7 +143,7 @@ export default function WebLoginPage() {
               className="block w-full rounded-xl border border-gray-200 px-3 py-3 text-sm text-gray-900 font-mono focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none placeholder:text-gray-300 disabled:opacity-50"
             />
             <p className="text-[11px] text-gray-400 mt-1.5">
-              ดู LINE User ID ได้จากหน้า Profile ในแอป
+              ดู User ID ได้จากหน้า Profile ในแอป
             </p>
           </div>
 
@@ -164,7 +164,7 @@ export default function WebLoginPage() {
           <button
             type="button"
             onClick={handleLogin}
-            disabled={loading || !lineUserId.trim() || pin.length !== 6}
+            disabled={loading || !userId.trim() || pin.length !== 6}
             className="w-full py-3.5 rounded-2xl bg-blue-500 text-white text-sm font-bold shadow-md active:scale-[0.98] transition-transform disabled:opacity-40 touch-manipulation"
           >
             {loading ? "กำลังตรวจสอบ…" : "เข้าสู่ระบบ"}
@@ -174,7 +174,7 @@ export default function WebLoginPage() {
         <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
           ต้องเปิดแอปผ่าน LINE ก่อน
           <br />
-          เพื่อตั้ง PIN ใน หน้า Profile
+          เพื่อดู User ID และตั้ง PIN ในหน้า Profile
         </p>
       </div>
     </div>

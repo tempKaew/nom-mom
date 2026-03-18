@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/common";
 import { initLiffAndGetToken } from "@/lib/line";
-import { apiGet } from "@/services/api/client";
 
-type Status = "loading" | "error" | "redirecting";
-type ErrorKind = "missing_liff_id" | "liff_init" | "profile" | "check_user";
+type Status = "loading" | "error";
+type ErrorKind = "missing_liff_id" | "liff_init" | "profile";
 
 export default function Home() {
   const router = useRouter();
@@ -29,32 +28,22 @@ export default function Home() {
           router.replace("/web-login");
           return;
         }
-        setErrorKind(result.error === "missing_liff_id" ? "missing_liff_id" : result.error === "no_id_token" ? "profile" : "liff_init");
+        setErrorKind(
+          result.error === "missing_liff_id"
+            ? "missing_liff_id"
+            : result.error === "no_id_token"
+            ? "profile"
+            : "liff_init"
+        );
         setErrorMessage(result.message);
         setStatus("error");
         return;
       }
 
-      setStatus("redirecting");
-
-      const checkResult = await apiGet<{ exists?: boolean }>(
-        "/api/check-user",
-        result.idToken
-      );
-      if (cancelled) return;
-
-      if (!checkResult.ok) {
-        setErrorKind("check_user");
-        setErrorMessage(checkResult.error);
-        setStatus("error");
-        return;
-      }
-
-      if (checkResult.data.exists) {
-        router.replace("/dashboard");
-      } else {
-        router.replace("/register");
-      }
+      // LIFF auth succeeded — redirect to dashboard.
+      // useDashboardAuth will call check-user once there and redirect to
+      // /register if the user hasn't registered yet.
+      router.replace("/dashboard");
     }
 
     run();
@@ -63,12 +52,8 @@ export default function Home() {
     };
   }, [router]);
 
-  if (status === "loading" || status === "redirecting") {
-    return (
-      <LoadingSpinner
-        label={status === "redirecting" ? "Taking you to the app…" : "Loading…"}
-      />
-    );
+  if (status === "loading") {
+    return <LoadingSpinner label="Loading…" />;
   }
 
   if (status === "error") {
@@ -79,7 +64,6 @@ export default function Home() {
             {errorKind === "missing_liff_id" && "Configuration error"}
             {errorKind === "liff_init" && "LIFF error"}
             {errorKind === "profile" && "Profile error"}
-            {errorKind === "check_user" && "Server error"}
           </p>
           <p className="mt-2 text-gray-600 text-sm">{errorMessage}</p>
           {errorKind === "liff_init" && (

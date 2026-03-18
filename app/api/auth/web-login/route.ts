@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyPin, signWebToken } from "@/lib/webAuth";
-import {
-  findUserIdByLineId,
-  getUserPinHash,
-} from "@/repositories/userRepository";
+import { getUserAuthById } from "@/repositories/userRepository";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({})) as {
-    line_user_id?: unknown;
+    user_id?: unknown;
     pin?: unknown;
   };
 
-  const lineUserId = typeof body.line_user_id === "string" ? body.line_user_id.trim() : "";
-  const pin        = typeof body.pin          === "string" ? body.pin.trim()          : "";
+  const userId = typeof body.user_id === "string" ? body.user_id.trim() : "";
+  const pin    = typeof body.pin     === "string" ? body.pin.trim()     : "";
 
-  if (!lineUserId || !pin) {
+  if (!userId || !pin) {
     return NextResponse.json(
-      { error: "กรุณากรอก LINE User ID และ PIN" },
+      { error: "กรุณากรอก User ID และ PIN" },
       { status: 400 },
     );
   }
@@ -29,32 +26,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Find the user
-  const userId = await findUserIdByLineId(lineUserId);
-  if (!userId) {
-    // Use same message for both "not found" and "wrong PIN" to prevent enumeration
+  // Look up user by database UUID
+  const userAuth = await getUserAuthById(userId);
+  if (!userAuth) {
     return NextResponse.json(
-      { error: "LINE User ID หรือ PIN ไม่ถูกต้อง" },
+      { error: "User ID หรือ PIN ไม่ถูกต้อง" },
       { status: 401 },
     );
   }
 
-  // Verify PIN
-  const pinHash = await getUserPinHash(lineUserId);
-  if (!pinHash) {
+  if (!userAuth.pin_hash) {
     return NextResponse.json(
       { error: "ยังไม่ได้ตั้ง PIN กรุณาเปิดแอปผ่าน LINE เพื่อตั้ง PIN ก่อน" },
       { status: 403 },
     );
   }
 
-  if (!verifyPin(pin, pinHash)) {
+  if (!verifyPin(pin, userAuth.pin_hash)) {
     return NextResponse.json(
-      { error: "LINE User ID หรือ PIN ไม่ถูกต้อง" },
+      { error: "User ID หรือ PIN ไม่ถูกต้อง" },
       { status: 401 },
     );
   }
 
-  const token = signWebToken(lineUserId, userId);
+  const token = signWebToken(userAuth.line_user_id ?? "", userId);
   return NextResponse.json({ token });
 }

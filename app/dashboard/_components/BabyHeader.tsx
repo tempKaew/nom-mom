@@ -19,11 +19,18 @@ interface Props {
   latestGrowth?: GrowthRecord | null;
 }
 
-export function BabyHeader({ babies, selectedBaby, onSwitchBaby, latestGrowth }: Props) {
+export function BabyHeader({
+  babies,
+  selectedBaby,
+  onSwitchBaby,
+  latestGrowth,
+}: Props) {
   return (
     <header
-      className="shrink-0 px-4 pt-6 pb-5"
-      style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+      className="shrink-0 px-4 pt-4 pb-3 shadow-md"
+      style={{
+        background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 90%)",
+      }}
     >
       {babies.length === 0 ? (
         /* ── No baby yet ── */
@@ -34,7 +41,9 @@ export function BabyHeader({ babies, selectedBaby, onSwitchBaby, latestGrowth }:
           >
             <PlusIcon size={20} className="text-green-500" />
           </Link>
-          <p className="text-sm text-green-700">{MESSAGES.UI.ADD_BABY_TO_START}</p>
+          <p className="text-sm text-green-700">
+            {MESSAGES.UI.ADD_BABY_TO_START}
+          </p>
         </div>
       ) : selectedBaby ? (
         /* ── Baby info ── */
@@ -78,14 +87,18 @@ export function BabyHeader({ babies, selectedBaby, onSwitchBaby, latestGrowth }:
           </div>
 
           {/* Growth metric pills */}
-          <div className="shrink-0 flex flex-col items-end gap-1.5">
+          <div className="shrink-0 flex flex-row items-end gap-1.5">
             <span className="inline-flex items-center gap-1 bg-white/60 border border-green-100 rounded-full px-2.5 py-1 text-[11px] font-semibold text-green-800">
               <WeightIcon size={11} className="text-green-500" />
-              {latestGrowth?.weight_kg != null ? `${latestGrowth.weight_kg} kg` : "— kg"}
+              {latestGrowth?.weight_kg != null
+                ? `${latestGrowth.weight_kg} kg`
+                : "— kg"}
             </span>
             <span className="inline-flex items-center gap-1 bg-white/60 border border-green-100 rounded-full px-2.5 py-1 text-[11px] font-semibold text-green-800">
               <RulerIcon size={11} className="text-green-500" />
-              {latestGrowth?.height_cm != null ? `${latestGrowth.height_cm} cm` : "— cm"}
+              {latestGrowth?.height_cm != null
+                ? `${latestGrowth.height_cm} cm`
+                : "— cm"}
             </span>
           </div>
         </button>
