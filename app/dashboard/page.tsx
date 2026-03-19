@@ -20,6 +20,7 @@ import { MESSAGES } from "@/constants/messages";
 import { QUICK_BTN_CONFIG, buildActivities } from "@/config/activityConfig";
 
 import { BabyHeader } from "./_components/BabyHeader";
+import { HowToSection } from "./_components/HowToSection";
 import { QuickRecord } from "./_components/QuickRecord";
 import { RecentSection } from "./_components/RecentSection";
 import { UpcomingAppointmentsSection } from "./_components/UpcomingAppointmentsSection";
@@ -138,6 +139,8 @@ export default function DashboardPage() {
           babyId={selectedBabyId}
           onEditSuccess={() => refetchLogs(true)}
         />
+
+        <HowToSection />
       </main>
 
       {/* Modals */}

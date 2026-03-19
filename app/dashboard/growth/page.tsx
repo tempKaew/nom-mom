@@ -12,6 +12,7 @@ import {
 import { GrowthHeader } from "./_components/GrowthHeader";
 import { GrowthHistorySection } from "./_components/GrowthHistorySection";
 import { GrowthRecordModal } from "./_components/GrowthRecordModal";
+import { DevelopmentSection } from "./_components/DevelopmentSection";
 import { apiGet } from "@/services/api/client";
 import type { GrowthRecord } from "@/types/app";
 import { MESSAGES } from "@/constants/messages";
@@ -25,6 +26,17 @@ type GrowthCacheEntry = {
 };
 const _growthCache = new Map<string, GrowthCacheEntry>();
 
+type GrowthTab = "growth" | "development";
+
+function getAgeMonths(birthDate: string | null | undefined): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return null;
+  const diffMs = Date.now() - birth.getTime();
+  if (diffMs < 0) return 0;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+}
+
 export default function GrowthPage() {
   const { status, idToken, data, errorMessage } = useDashboardAuth();
   const [selectedBabyId, setSelectedBabyId] = useSelectedBabyId(
@@ -33,6 +45,7 @@ export default function GrowthPage() {
   const [showSwitchBaby, setShowSwitchBaby] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editRecord, setEditRecord] = useState<GrowthRecord | null>(null);
+  const [activeTab, setActiveTab] = useState<GrowthTab>("growth");
   const [records, setRecords] = useState<GrowthRecord[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
 
@@ -113,6 +126,7 @@ export default function GrowthPage() {
   const { babies } = data;
   const selectedBaby =
     babies.find((b) => b.id === selectedBabyId) ?? babies[0] ?? null;
+  const ageMonths = getAgeMonths(selectedBaby?.birth_date);
 
   const latest = records[0] ?? null;
 
@@ -150,11 +164,40 @@ export default function GrowthPage() {
       />
 
       <div className="flex-1 px-4 pt-4 space-y-4 pb-4">
-        <GrowthHistorySection
-          records={records}
-          loading={loadingRecords}
-          onEdit={setEditRecord}
-        />
+        <div className="bg-white rounded-2xl shadow-sm p-1 flex gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("growth")}
+            className={`flex-1 rounded-xl py-2 text-sm font-semibold transition-colors ${
+              activeTab === "growth"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            การเจริญเติบโต
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("development")}
+            className={`flex-1 rounded-xl py-2 text-sm font-semibold transition-colors ${
+              activeTab === "development"
+                ? "bg-purple-500 text-white shadow-sm"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            พัฒนาการ
+          </button>
+        </div>
+
+        {activeTab === "growth" ? (
+          <GrowthHistorySection
+            records={records}
+            loading={loadingRecords}
+            onEdit={setEditRecord}
+          />
+        ) : (
+          <DevelopmentSection ageMonths={ageMonths} babyId={selectedBabyId} />
+        )}
       </div>
 
       {showAddModal && selectedBabyId && (
