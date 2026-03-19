@@ -29,6 +29,9 @@ export default function EditBabyPage() {
   const [baby, setBaby] = useState<BabyDetail | null>(null);
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "other" | "unknown">(
+    "unknown",
+  );
   const [saveSubmitting, setSaveSubmitting] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
@@ -68,6 +71,14 @@ export default function EditBabyPage() {
           setBaby(result.data);
           setName(result.data.name);
           setBirthDate(result.data.birth_date ?? "");
+          setGender(
+            (result.data.gender as
+              | "male"
+              | "female"
+              | "other"
+              | "unknown"
+              | null) ?? "unknown",
+          );
           setStatus("ready");
         }
       } catch {
@@ -175,6 +186,7 @@ export default function EditBabyPage() {
       {
         name: name.trim(),
         birth_date: birthDate.trim() || null,
+        gender,
       },
     );
 
@@ -222,7 +234,9 @@ export default function EditBabyPage() {
       {/* ── Gradient header with avatar ────────────────────────────────── */}
       <header
         className="px-4 pt-5 pb-7 flex flex-col"
-        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+        style={{
+          background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)",
+        }}
       >
         <div className="flex items-center gap-3 mb-5">
           <Link
@@ -302,8 +316,32 @@ export default function EditBabyPage() {
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
+                className="block w-full min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-0 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="editGender"
+                className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5"
+              >
+                เพศ
+              </label>
+              <select
+                id="editGender"
+                value={gender}
+                onChange={(e) =>
+                  setGender(
+                    e.target.value as "male" | "female" | "other" | "unknown",
+                  )
+                }
+                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
+              >
+                <option value="unknown">ไม่ระบุ</option>
+                <option value="male">ชาย</option>
+                <option value="female">หญิง</option>
+                <option value="other">อื่นๆ</option>
+              </select>
             </div>
           </div>
 

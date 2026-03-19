@@ -7,6 +7,7 @@ export type BabyDetail = {
   id: string;
   name: string;
   birth_date: string | null;
+  gender: string | null;
   avatar_url: string | null;
   is_owner: boolean;
 };
@@ -18,6 +19,7 @@ export const dynamic = "force-dynamic";
 type PatchBody = {
   name?: string;
   birth_date?: string | null;
+  gender?: "male" | "female" | "other" | "unknown" | null;
   avatar_url?: string | null;
 };
 
@@ -91,9 +93,16 @@ export async function PATCH(
     }
 
     const body = (await request.json()) as PatchBody;
-    const updates: Partial<Pick<BabyRow, "name" | "birth_date" | "avatar_url">> = {};
+    const updates: Partial<Pick<BabyRow, "name" | "birth_date" | "gender" | "avatar_url">> = {};
     if (body.name !== undefined) updates.name = String(body.name).trim();
     if (body.birth_date !== undefined) updates.birth_date = body.birth_date;
+    if (body.gender !== undefined) {
+      const allowedGender = new Set(["male", "female", "other", "unknown"]);
+      if (body.gender !== null && !allowedGender.has(body.gender)) {
+        return NextResponse.json({ error: "invalid gender" }, { status: 400 });
+      }
+      updates.gender = body.gender;
+    }
     if (body.avatar_url !== undefined) updates.avatar_url = body.avatar_url;
 
     if (Object.keys(updates).length === 0) {

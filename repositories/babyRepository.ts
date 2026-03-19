@@ -11,7 +11,7 @@ export async function getBabiesByIds(
 
   const { data, error } = await supabaseServer
     .from("babies")
-    .select("id, name, birth_date, avatar_url")
+    .select("id, name, birth_date, gender, avatar_url")
     .in("id", babyIds);
 
   if (error) throw new Error(error.message ?? "Failed to load babies");
@@ -25,7 +25,7 @@ export async function getBabiesByIds(
 export async function getBabyById(babyId: string): Promise<BabyRow | null> {
   const { data, error } = await supabaseServer
     .from("babies")
-    .select("id, name, birth_date, avatar_url")
+    .select("id, name, birth_date, gender, avatar_url")
     .eq("id", babyId)
     .single();
 
@@ -47,6 +47,7 @@ export async function getBabyOwnerId(babyId: string): Promise<string | null> {
 export async function createBaby(params: {
   name: string;
   birth_date: string | null;
+  gender: string | null;
   avatar_url: string | null;
   created_by_user_id: string;
 }): Promise<{ id: string } | null> {
@@ -57,6 +58,7 @@ export async function createBaby(params: {
     .insert({
       name: params.name,
       birth_date: params.birth_date,
+      gender: params.gender,
       avatar_url: params.avatar_url,
       created_by_user_id: params.created_by_user_id,
     })
@@ -72,14 +74,14 @@ export async function createBaby(params: {
 
 export async function updateBaby(
   babyId: string,
-  updates: Partial<Pick<BabyRow, "name" | "birth_date" | "avatar_url">>
+  updates: Partial<Pick<BabyRow, "name" | "birth_date" | "gender" | "avatar_url">>
 ): Promise<BabyRow | null> {
   const { data, error } = await supabaseServer
     .from("babies")
     // @ts-expect-error - update type inference with generic Database
     .update(updates)
     .eq("id", babyId)
-    .select("id, name, birth_date, avatar_url")
+    .select("id, name, birth_date, gender, avatar_url")
     .single();
 
   if (error || !data) return null;

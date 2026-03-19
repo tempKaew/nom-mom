@@ -16,6 +16,7 @@ export default function NewBabyPage() {
 
   const [name,       setName]       = useState("");
   const [birthDate,  setBirthDate]  = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "other" | "unknown">("unknown");
   const [submitting, setSubmitting] = useState(false);
   const [error,      setError]      = useState("");
 
@@ -31,6 +32,7 @@ export default function NewBabyPage() {
     const result = await apiPost<{ babyId?: string }>("/api/babies", idToken, {
       name:       name.trim(),
       birth_date: birthDate.trim() || null,
+      gender,
       avatar_url: null,
     });
 
@@ -123,8 +125,28 @@ export default function NewBabyPage() {
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
+                className="block w-full min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-2 sm:px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="newBabyGender"
+                className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-1.5"
+              >
+                เพศ
+              </label>
+              <select
+                id="newBabyGender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as "male" | "female" | "other" | "unknown")}
+                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 focus:border-green-400 focus:ring-1 focus:ring-green-400 focus:bg-white transition-colors"
+              >
+                <option value="unknown">ไม่ระบุ</option>
+                <option value="male">ชาย</option>
+                <option value="female">หญิง</option>
+                <option value="other">อื่นๆ</option>
+              </select>
             </div>
           </div>
 

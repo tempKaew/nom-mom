@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 type CreateBabyBody = {
   name: string;
   birth_date?: string | null;
+  gender?: "male" | "female" | "other" | "unknown" | null;
   avatar_url?: string | null;
 };
 
@@ -35,7 +36,7 @@ export async function POST(
     if (auth instanceof Response) return auth;
 
     const body = (await request.json()) as CreateBabyBody;
-    const { name, birth_date, avatar_url } = body;
+    const { name, birth_date, gender, avatar_url } = body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       return NextResponse.json(
@@ -44,9 +45,18 @@ export async function POST(
       );
     }
 
+    const allowedGender = new Set(["male", "female", "other", "unknown"]);
+    if (gender !== undefined && gender !== null && !allowedGender.has(gender)) {
+      return NextResponse.json(
+        { error: "invalid gender" },
+        { status: 400 }
+      );
+    }
+
     const baby = await createBaby({
       name: name.trim(),
       birth_date: birth_date ?? null,
+      gender: gender ?? "unknown",
       avatar_url: avatar_url ?? null,
       created_by_user_id: auth.userId,
     });

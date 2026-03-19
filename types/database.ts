@@ -44,6 +44,7 @@ export interface Database {
           id: string;
           name: string;
           birth_date: string | null;
+          gender: string | null;
           avatar_url: string | null;
           created_by_user_id: string | null;
           created_at: string;
@@ -53,6 +54,7 @@ export interface Database {
           id?: string;
           name: string;
           birth_date?: string | null;
+          gender?: string | null;
           avatar_url?: string | null;
           created_by_user_id?: string | null;
           created_at?: string;
@@ -62,6 +64,7 @@ export interface Database {
           id?: string;
           name?: string;
           birth_date?: string | null;
+          gender?: string | null;
           avatar_url?: string | null;
           created_by_user_id?: string | null;
           created_at?: string;
@@ -375,5 +378,6 @@ export type BabyRow = {
   id: string;
   name: string;
   birth_date: string | null;
+  gender: string | null;
   avatar_url: string | null;
 };
