@@ -11,6 +11,10 @@ interface Props {
 
 export function ActivityCard({ activity, onEdit }: Props) {
   const style = CATEGORY_STYLES[activity.category];
+  const displayLabel =
+    activity.category === "feeding" && !activity.label.startsWith("ป้อนนม")
+      ? `ป้อนนม : ${activity.label}`
+      : activity.label;
 
   return (
     <div className="flex items-start gap-2.5">
@@ -23,32 +27,40 @@ export function ActivityCard({ activity, onEdit }: Props) {
       </div>
 
       {/* Card */}
-      <button
-        type="button"
-        onClick={() => onEdit?.(activity)}
-        disabled={!onEdit}
-        className={`flex-1 ${style.bg} rounded-2xl px-4 py-3 text-left transition-all ${
-          onEdit ? "active:opacity-70 active:scale-[0.99] cursor-pointer" : "cursor-default"
-        }`}
+      <div
+        className={`flex-1 ${style.bg} rounded-2xl px-4 py-3 text-left transition-all`}
       >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-base leading-none shrink-0">{activity.icon}</span>
-            <span className={`text-sm font-semibold ${style.text} truncate`}>
-              {activity.label}
+            <span className="text-base leading-none shrink-0">
+              {activity.icon}
+            </span>
+            <span className={`text-sm font-semibold ${style.text}`}>
+              {displayLabel}
             </span>
           </div>
-          {onEdit && (
-            <PencilIcon size={12} className="text-gray-300 shrink-0" />
+          {onEdit ? (
+            <button
+              type="button"
+              onClick={() => onEdit(activity)}
+              aria-label={`Edit ${activity.label}`}
+              className="p-2 rounded-lg hover:bg-black/5 active:bg-black/10 transition-colors cursor-pointer"
+            >
+              <PencilIcon size={12} className="text-gray-400 shrink-0" />
+            </button>
+          ) : (
+            <span className="w-[28px]" />
           )}
         </div>
         {activity.detail && (
-          <p className={`text-xs mt-0.5 ${style.detail}`}>{activity.detail}</p>
+          <p className="text-xs mt-0.5 text-gray-700">{activity.detail}</p>
         )}
         {activity.notes && (
-          <p className="text-xs text-gray-400 mt-0.5 truncate italic">{activity.notes}</p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate italic">
+            {activity.notes}
+          </p>
         )}
-      </button>
+      </div>
     </div>
   );
 }

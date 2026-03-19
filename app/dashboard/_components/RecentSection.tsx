@@ -6,6 +6,7 @@ import { LoadingSpinner, EditActivityModal } from "@/components/common";
 import { ActivityCard } from "@/components/activity/ActivityCard";
 import type { Activity } from "@/config/activityConfig";
 import Link from "next/link";
+import { ClockIcon } from "@/components/icons";
 
 interface Props {
   activities: Activity[];
@@ -15,16 +16,26 @@ interface Props {
   onEditSuccess: () => void;
 }
 
-export function RecentSection({ activities, loading, idToken, babyId, onEditSuccess }: Props) {
+export function RecentSection({
+  activities,
+  loading,
+  idToken,
+  babyId,
+  onEditSuccess,
+}: Props) {
   const [editActivity, setEditActivity] = useState<Activity | null>(null);
 
   return (
     <section className="px-4 pt-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-bold text-gray-400 uppercase">
+        <p className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
+          <ClockIcon size={13} className="text-medical" />
           {MESSAGES.UI.SECTION_RECENT}
         </p>
-        <Link href="/dashboard/log" className="text-[11px] text-medical font-medium">
+        <Link
+          href="/dashboard/log"
+          className="text-[11px] text-medical font-medium"
+        >
           {MESSAGES.UI.SEE_ALL}
         </Link>
       </div>

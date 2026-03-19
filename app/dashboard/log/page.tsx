@@ -108,6 +108,125 @@ function groupByDate(
   }));
 }
 
+function formatRangeLabel(from: string, to: string): string {
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  return `${fmt(fromDate)} - ${fmt(toDate)}`;
+}
+
+function averageIntervalHours(isoTimes: string[]): number | null {
+  if (isoTimes.length < 2) return null;
+  const sorted = [...isoTimes].sort(
+    (a, b) => new Date(a).getTime() - new Date(b).getTime(),
+  );
+  const diffs: number[] = [];
+  for (let i = 1; i < sorted.length; i += 1) {
+    diffs.push(
+      new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime(),
+    );
+  }
+  const avgMs = diffs.reduce((s, v) => s + v, 0) / diffs.length;
+  return avgMs / (1000 * 60 * 60);
+}
+
+function durationMinutesFromSleep(
+  startedAt: string,
+  endedAt: string | null,
+  durationMinutes: number | null,
+): number {
+  if (typeof durationMinutes === "number") return durationMinutes;
+  if (!endedAt) return 0;
+  return Math.max(
+    0,
+    Math.round(
+      (new Date(endedAt).getTime() - new Date(startedAt).getTime()) /
+        (1000 * 60),
+    ),
+  );
+}
+
+type SummarySectionProps = {
+  rangeLabel: string;
+  feedTotalOz: number;
+  feedCount: number;
+  pumpingTotalOz: number;
+  pumpingCount: number;
+  sleepHours: number;
+  napMinutes: number;
+  peeCount: number;
+  poopCount: number;
+  diaperUsedCount: number;
+  lastPoopHours: number | null;
+};
+
+function SummarySection({
+  rangeLabel,
+  feedTotalOz,
+  feedCount,
+  pumpingTotalOz,
+  pumpingCount,
+  sleepHours,
+  napMinutes,
+  peeCount,
+  poopCount,
+  diaperUsedCount,
+  lastPoopHours,
+}: SummarySectionProps) {
+  return (
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold text-gray-800">
+          สรุปตามช่วงเวลาที่เลือก
+        </h2>
+        <span className="text-[11px] text-gray-400">{rangeLabel}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl bg-blue-50 px-3 py-2">
+          <p className="text-[10px] text-blue-500 font-bold">การป้อนนม</p>
+          <p className="text-sm font-bold text-blue-800">
+            {feedTotalOz.toFixed(1)} oz
+          </p>
+          <p className="text-[11px] text-blue-600">{feedCount} ครั้ง</p>
+        </div>
+        <div className="rounded-xl bg-sky-50 px-3 py-2">
+          <p className="text-[10px] text-sky-500 font-bold">การปั๊มนม</p>
+          <p className="text-sm font-bold text-sky-800">
+            {pumpingTotalOz.toFixed(1)} oz
+          </p>
+          <p className="text-[11px] text-sky-600">{pumpingCount} รอบ</p>
+        </div>
+        <div className="rounded-xl bg-purple-50 px-3 py-2">
+          <p className="text-[10px] text-purple-500 font-bold">การนอน</p>
+          <p className="text-sm font-bold text-purple-800">
+            {sleepHours.toFixed(1)} ชม.
+          </p>
+          <p className="text-[11px] text-purple-600">
+            งีบ {Math.round(napMinutes)} นาที
+          </p>
+        </div>
+        <div className="rounded-xl bg-amber-50 px-3 py-2">
+          <p className="text-[10px] text-amber-500 font-bold">การขับถ่าย</p>
+          <p className="text-sm font-bold text-amber-800">
+            ฉี่ {peeCount} / อึ {poopCount}
+          </p>
+          <p className="text-[11px] text-amber-600">
+            ใช้ผ้าอ้อม {diaperUsedCount} ครั้ง
+            {lastPoopHours != null
+              ? `, อึล่าสุด ${lastPoopHours} ชม.`
+              : ", ยังไม่มีอึ"}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function LogPage() {
@@ -175,6 +294,85 @@ export default function LogPage() {
       : allActivities.filter((a) => a.category === categoryFilter);
 
   const groups = groupByDate(filtered);
+  const rangeLabel = formatRangeLabel(from, to);
+
+  const feedTotalOz = milkLogs.reduce(
+    (sum, l) => sum + (l.amount_ml ?? 0) / 29.5735,
+    0,
+  );
+  const feedCount = milkLogs.length;
+  const feedAvgOz = feedCount > 0 ? feedTotalOz / feedCount : 0;
+  const feedIntervalHours = averageIntervalHours(
+    milkLogs.map((l) => l.logged_at),
+  );
+
+  const pumpingTotalOz = pumpingSessions.reduce(
+    (sum, p) => sum + (p.total_volume_ml ?? 0) / 29.5735,
+    0,
+  );
+  const pumpingCount = pumpingSessions.length;
+  const pumpingAvgOz = pumpingCount > 0 ? pumpingTotalOz / pumpingCount : 0;
+
+  const sleepMinutes = sleepLogs.reduce(
+    (sum, s) =>
+      sum +
+      durationMinutesFromSleep(
+        s.started_at,
+        s.ended_at,
+        s.duration_minutes ?? null,
+      ),
+    0,
+  );
+  const sleepHours = sleepMinutes / 60;
+  const napMinutes = sleepLogs
+    .filter((s) => s.type === "nap")
+    .reduce(
+      (sum, s) =>
+        sum +
+        durationMinutesFromSleep(
+          s.started_at,
+          s.ended_at,
+          s.duration_minutes ?? null,
+        ),
+      0,
+    );
+  const nightMinutes = Math.max(0, sleepMinutes - napMinutes);
+
+  const peeCount = excretionEvents.filter(
+    (e) => e.type === "pee" || e.type === "both",
+  ).length;
+  const diaperUsedCount = excretionEvents.filter((e) => e.diaper_used).length;
+  const poopEvents = excretionEvents.filter(
+    (e) => e.type === "poop" || e.type === "both",
+  );
+  const poopCount = poopEvents.length;
+  const lastPoop = poopEvents.sort(
+    (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
+  )[0];
+  const lastPoopHours =
+    lastPoop != null
+      ? Math.floor(
+          (Date.now() - new Date(lastPoop.datetime).getTime()) /
+            (1000 * 60 * 60),
+        )
+      : null;
+
+  const insights = [
+    feedCount > 0
+      ? `ป้อนนมรวม ${feedTotalOz.toFixed(1)} oz • เฉลี่ย ${feedAvgOz.toFixed(1)} oz/ครั้ง${
+          feedIntervalHours ? ` • ทุก ~${feedIntervalHours.toFixed(1)} ชม.` : ""
+        }`
+      : "ยังไม่มีบันทึกการป้อนนมในช่วงเวลานี้",
+    pumpingCount > 0
+      ? `ปั๊มนมรวม ${pumpingTotalOz.toFixed(1)} oz • เฉลี่ย ${pumpingAvgOz.toFixed(1)} oz/รอบ`
+      : "ยังไม่มีบันทึกการปั๊มนมในช่วงเวลานี้",
+    sleepMinutes > 0
+      ? `นอนรวม ${sleepHours.toFixed(1)} ชม. • งีบ ${Math.round(napMinutes)} นาที • กลางคืน ${Math.round(nightMinutes)} นาที`
+      : "ยังไม่มีบันทึกการนอนในช่วงเวลานี้",
+    poopCount > 0
+      ? `ฉี่ ${peeCount} ครั้ง • อึ ${poopCount} ครั้ง • ใช้ผ้าอ้อม ${diaperUsedCount} ครั้ง • ล่าสุดอึ ${lastPoopHours ?? 0} ชม.ก่อน`
+      : `ฉี่ ${peeCount} ครั้ง • ใช้ผ้าอ้อม ${diaperUsedCount} ครั้ง • ยังไม่มีบันทึกอึในช่วงเวลานี้`,
+  ];
 
   const isCustomValid =
     datePreset !== "custom" ||
@@ -188,7 +386,9 @@ export default function LogPage() {
       {/* ── Gradient header ─────────────────────────────────────────────── */}
       <header
         className="sticky top-0 z-10 px-4 pt-5 pb-3 space-y-3"
-        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+        style={{
+          background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)",
+        }}
       >
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-green-900">
@@ -287,6 +487,37 @@ export default function LogPage() {
           </div>
         ) : (
           <div className="space-y-5 pb-4">
+            {/* Layer 1: Summary by current filter range */}
+            <SummarySection
+              rangeLabel={rangeLabel}
+              feedTotalOz={feedTotalOz}
+              feedCount={feedCount}
+              pumpingTotalOz={pumpingTotalOz}
+              pumpingCount={pumpingCount}
+              sleepHours={sleepHours}
+              napMinutes={napMinutes}
+              peeCount={peeCount}
+              poopCount={poopCount}
+              diaperUsedCount={diaperUsedCount}
+              lastPoopHours={lastPoopHours}
+            />
+
+            {/* Layer 2: Auto insights */}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <h3 className="text-sm font-bold text-gray-800 mb-2">Insight</h3>
+              <div className="space-y-1.5">
+                {insights.map((text) => (
+                  <p
+                    key={text}
+                    className="text-xs text-gray-600 leading-relaxed"
+                  >
+                    • {text}
+                  </p>
+                ))}
+              </div>
+            </section>
+
+            {/* Layer 3: Timeline list */}
             {groups.map((group) => (
               <div key={group.date}>
                 {/* Date group label */}

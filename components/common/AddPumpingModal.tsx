@@ -33,6 +33,7 @@ import {
   ArrowRightIcon,
   BreastPumpIcon,
 } from "@/components/icons";
+import { getRecentTimeSuggestions } from "@/utils/time";
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -52,7 +53,7 @@ type LastSession = {
 const ML_PER_OZ = 29.5735;
 const LS_LAST = "pumping_last_session";
 
-const QUICK_DURATIONS = [10, 15, 20, 30] as const;
+const QUICK_DURATIONS = [10, 15, 20, 25, 30, 40] as const;
 
 const PUMPING_TYPES: {
   key: PumpingType;
@@ -298,12 +299,14 @@ export function AddPumpingModal({
 
   // ─── Mode & Unit ────────────────────────────────────────────────────────
   // Edit mode always uses manual (no timer for past sessions)
-  const [inputMode, setInputMode] = useState<InputMode>(isEdit ? "manual" : "timer");
+  const [inputMode, setInputMode] = useState<InputMode>(
+    isEdit ? "manual" : "timer",
+  );
   const [unit, setUnit] = useState<Unit>("oz");
 
   // ─── Pumping type (shared, top-level choice) ────────────────────────────
   const [pumpingType, setPumpingType] = useState<PumpingType>(
-    (initialData?.pumping_type as PumpingType) ?? "normal"
+    (initialData?.pumping_type as PumpingType) ?? "normal",
   );
 
   // ─── Timer ──────────────────────────────────────────────────────────────
@@ -315,13 +318,13 @@ export function AddPumpingModal({
 
   // ─── Manual time ────────────────────────────────────────────────────────
   const [date, setDate] = useState(() =>
-    initialData ? toDateStr(new Date(initialData.start_time)) : toDateStr(now)
+    initialData ? toDateStr(new Date(initialData.start_time)) : toDateStr(now),
   );
   const [startTime, setStartTime] = useState(() =>
-    initialData ? toTimeStr(new Date(initialData.start_time)) : toTimeStr(now)
+    initialData ? toTimeStr(new Date(initialData.start_time)) : toTimeStr(now),
   );
   const [endTime, setEndTime] = useState(() =>
-    initialData?.end_time ? toTimeStr(new Date(initialData.end_time)) : ""
+    initialData?.end_time ? toTimeStr(new Date(initialData.end_time)) : "",
   );
 
   // ─── Volume ─────────────────────────────────────────────────────────────
@@ -329,20 +332,23 @@ export function AddPumpingModal({
   const [rightMl, setRightMl] = useState(initialData?.right_volume_ml ?? 0);
 
   // ─── Breast status ──────────────────────────────────────────────────────
-  const [breastCondition, setBreastCondition] = useState<BreastCondition | null>(
-    (initialData?.breast_condition as BreastCondition | null) ?? null
-  );
+  const [breastCondition, setBreastCondition] =
+    useState<BreastCondition | null>(
+      (initialData?.breast_condition as BreastCondition | null) ?? null,
+    );
   const [painLevel, setPainLevel] = useState<PainLevel | null>(
-    (initialData?.pain_level as PainLevel | null) ?? null
+    (initialData?.pain_level as PainLevel | null) ?? null,
   );
 
   // ─── Storage ────────────────────────────────────────────────────────────
   const [storageType, setStorageType] = useState<StorageType>(
-    (initialData?.storage_type as StorageType) ?? "immediate"
+    (initialData?.storage_type as StorageType) ?? "immediate",
   );
 
   // ─── Notes ──────────────────────────────────────────────────────────────
-  const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.note_tags ?? []);
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    initialData?.note_tags ?? [],
+  );
   const [noteText, setNoteText] = useState(initialData?.note_text ?? "");
 
   // ─── Smart suggest ──────────────────────────────────────────────────────
@@ -351,6 +357,7 @@ export function AddPumpingModal({
   // ─── Form ───────────────────────────────────────────────────────────────
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const recentTimeSuggestions = getRecentTimeSuggestions();
 
   const totalMl = leftMl + rightMl;
 
@@ -448,6 +455,11 @@ export function AddPumpingModal({
     if (!idToken || submitting) return;
     setError("");
 
+    if (totalMl <= 0) {
+      setError("ปริมาณน้ำนมรวมต้องมากกว่า 0");
+      return;
+    }
+
     let startISO: string;
     let endISO: string | null = null;
     let durationMins: number | null = null;
@@ -484,20 +496,20 @@ export function AddPumpingModal({
     setSubmitting(true);
 
     const pumpPayload = {
-      baby_id:          babyId,
-      start_time:       startISO,
-      end_time:         endISO,
+      baby_id: babyId,
+      start_time: startISO,
+      end_time: endISO,
       duration_minutes: durationMins,
-      left_volume_ml:   leftMl,
-      right_volume_ml:  rightMl,
-      total_volume_ml:  totalMl,
-      pumping_type:     pumpingType,
+      left_volume_ml: leftMl,
+      right_volume_ml: rightMl,
+      total_volume_ml: totalMl,
+      pumping_type: pumpingType,
       breast_condition: breastCondition,
-      pain_level:       painLevel,
-      storage_type:     storageType,
-      note_text:        noteText.trim() || null,
-      note_tags:        selectedTags,
-      notes:            null,
+      pain_level: painLevel,
+      storage_type: storageType,
+      note_text: noteText.trim() || null,
+      note_tags: selectedTags,
+      notes: null,
     };
 
     // Persist last session for next time (add mode only)
@@ -516,7 +528,11 @@ export function AddPumpingModal({
     }
 
     const result = isEdit
-      ? await apiPatch(`/api/pumping?id=${initialData!.id}`, idToken, pumpPayload)
+      ? await apiPatch(
+          `/api/pumping?id=${initialData!.id}`,
+          idToken,
+          pumpPayload,
+        )
       : await apiPost("/api/pumping", idToken, pumpPayload);
 
     if (!result.ok) {
@@ -598,30 +614,32 @@ export function AddPumpingModal({
           )}
 
           {/* Mode toggle (add mode only — edit always uses manual) */}
-          {!isEdit && <div className="flex bg-gray-100 rounded-xl p-1">
-            {(["timer", "manual"] as InputMode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setInputMode(m)}
-                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all touch-manipulation flex items-center justify-center gap-1.5 ${
-                  inputMode === m
-                    ? "bg-white shadow text-gray-900"
-                    : "text-gray-400"
-                }`}
-              >
-                {m === "timer" ? (
-                  <>
-                    <TimerIcon size={14} /> จับเวลา
-                  </>
-                ) : (
-                  <>
-                    <PencilIcon size={14} /> กรอกเอง
-                  </>
-                )}
-              </button>
-            ))}
-          </div>}
+          {!isEdit && (
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              {(["timer", "manual"] as InputMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setInputMode(m)}
+                  className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all touch-manipulation flex items-center justify-center gap-1.5 ${
+                    inputMode === m
+                      ? "bg-white shadow text-gray-900"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {m === "timer" ? (
+                    <>
+                      <TimerIcon size={14} /> จับเวลา
+                    </>
+                  ) : (
+                    <>
+                      <PencilIcon size={14} /> กรอกเอง
+                    </>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Scrollable body ───────────────────────────────────────────── */}
@@ -778,12 +796,55 @@ export function AddPumpingModal({
                   }}
                   className="block w-full rounded-xl border border-gray-200 px-0 py-2.5 text-gray-900 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-400 outline-none"
                 />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {recentTimeSuggestions.map((dt) => {
+                    const suggestedDate = toDateStr(dt);
+                    const suggestedTime = toTimeStr(dt);
+                    const key = `${suggestedDate}T${suggestedTime}`;
+                    const selected =
+                      date === suggestedDate && startTime === suggestedTime;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          const prevDuration =
+                            manualDuration && manualDuration > 0
+                              ? manualDuration
+                              : null;
+                          setDate(suggestedDate);
+                          setStartTime(suggestedTime);
+                          if (prevDuration) {
+                            setEndTime(
+                              addMins(
+                                suggestedDate,
+                                suggestedTime,
+                                prevDuration,
+                              ),
+                            );
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95 touch-manipulation ${
+                          selected
+                            ? "bg-pink-100 border-pink-400 text-pink-800"
+                            : "border-gray-200 bg-white text-gray-500"
+                        }`}
+                      >
+                        {dt.toLocaleTimeString("th-TH", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Quick duration */}
               <div>
-                <SectionLabel>ระยะเวลาด่วน</SectionLabel>
-                <div className="grid grid-cols-4 gap-2">
+                <SectionLabel>ใช้เวลาปั้มทั้งหมด</SectionLabel>
+                <div className="grid grid-cols-6 gap-2">
                   {QUICK_DURATIONS.map((mins) => (
                     <button
                       key={mins}

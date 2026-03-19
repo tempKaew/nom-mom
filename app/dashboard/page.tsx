@@ -24,6 +24,7 @@ import { QuickRecord } from "./_components/QuickRecord";
 import { RecentSection } from "./_components/RecentSection";
 import { UpcomingAppointmentsSection } from "./_components/UpcomingAppointmentsSection";
 import type { QuickModal, QuickBtnConfig } from "./_components/QuickRecord";
+import { Appointment } from "@/types/app";
 
 export default function DashboardPage() {
   const { status, idToken, data, errorMessage } = useDashboardAuth();
@@ -70,15 +71,18 @@ export default function DashboardPage() {
   const selectedBaby =
     babies.find((b) => b.id === selectedBabyId) ?? babies[0] ?? null;
 
-  const lastFeeding   = milkLogs[0] ?? null;
-  const lastPump      = milkLogs.find((l) => l.type === "pump");
+  const lastFeeding = milkLogs[0] ?? null;
+  const lastPump = pumpingSessions[0]
+    ? { logged_at: pumpingSessions[0].start_time }
+    : null;
   const lastExcretion = excretionEvents[0] ?? null;
-  const lastSleep     = sleepLogs[0] ?? null;
-  const nextAppt      = appointments.find((a) => a.status === "pending") ?? null;
+  const lastSleep = sleepLogs[0] ?? null;
+  // const nextAppt = appointments.find((a) => a.status === "upcoming") ?? null;
+  const nextAppt = null as Appointment | null;
 
   const quickButtons: QuickBtnConfig[] = [
-    { ...QUICK_BTN_CONFIG.feeding,     key: "feeding",     lastLog: lastFeeding },
-    { ...QUICK_BTN_CONFIG.pump,        key: "pump",        lastLog: lastPump },
+    { ...QUICK_BTN_CONFIG.feeding, key: "feeding", lastLog: lastFeeding },
+    { ...QUICK_BTN_CONFIG.pump, key: "pump", lastLog: lastPump },
     {
       ...QUICK_BTN_CONFIG.appointment,
       key: "appointment",

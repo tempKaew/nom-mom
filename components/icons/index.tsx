@@ -14,6 +14,7 @@ export {
   ChevronLeft as ChevronLeftIcon,
   ChevronDown as ChevronDownIcon,
   Plus as PlusIcon,
+  Pin as PinIcon,
   Check as CheckIcon,
   CheckCircle2 as CheckCircleIcon,
   XCircle as XCircleIcon,

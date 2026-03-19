@@ -27,6 +27,56 @@ export function toLocalDatetimeValue(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+/**
+ * Suggest `count` datetime-local values in the past.
+ * - Floors "now" to the latest `stepMinutes` boundary first
+ * - Then steps back by `stepMinutes` to generate suggestions.
+ *
+ * Example:
+ * - now = 12:02, step=15 => base=12:00 => [11:45, 11:30, 11:15, 11:00, 10:45, 10:30]
+ */
+export function getRecentDateTimeSuggestions(
+  count = 6,
+  stepMinutes = 15,
+): string[] {
+  const now = new Date();
+  now.setSeconds(0, 0);
+
+  const base = new Date(now);
+  const m = base.getMinutes();
+  base.setMinutes(m - (m % stepMinutes));
+  base.setSeconds(0, 0);
+
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(base);
+    d.setMinutes(d.getMinutes() - (i + 1) * stepMinutes);
+    return toLocalDatetimeValue(d);
+  });
+}
+
+/**
+ * Suggest `count` Date objects in the past, stepped by `stepMinutes`.
+ * Uses the same flooring rule as `getRecentDateTimeSuggestions`.
+ */
+export function getRecentTimeSuggestions(
+  count = 6,
+  stepMinutes = 15,
+): Date[] {
+  const now = new Date();
+  now.setSeconds(0, 0);
+
+  const base = new Date(now);
+  const m = base.getMinutes();
+  base.setMinutes(m - (m % stepMinutes));
+  base.setSeconds(0, 0);
+
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(base);
+    d.setMinutes(d.getMinutes() - (i + 1) * stepMinutes);
+    return d;
+  });
+}
+
 export function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString("en-GB", {
     hour: "2-digit",

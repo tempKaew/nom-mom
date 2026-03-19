@@ -12,7 +12,7 @@ import {
   ClockIcon,
 } from "@/components/icons";
 import { MESSAGES } from "@/constants/messages";
-import { toLocalDatetimeValue } from "@/utils/time";
+import { getRecentDateTimeSuggestions, toLocalDatetimeValue } from "@/utils/time";
 import type {
   ExcretionType,
   PeeAmount,
@@ -202,6 +202,7 @@ export function AddExcretionEventModal({ idToken, babyId, initialData, onClose, 
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState("");
+  const recentTimeSuggestions = getRecentDateTimeSuggestions();
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -307,6 +308,22 @@ export function AddExcretionEventModal({ idToken, babyId, initialData, onClose, 
             <input type="datetime-local" value={datetime} max={toLocalDatetimeValue(new Date())}
               onChange={(e) => setDatetime(e.target.value)}
               className="block w-full rounded-xl border border-gray-200 px-0 py-2.5 text-gray-900 text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 outline-none" />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {recentTimeSuggestions.map((dt) => (
+                <button
+                  key={dt}
+                  type="button"
+                  onClick={() => setDatetime(dt)}
+                  className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95 touch-manipulation ${
+                    datetime === dt
+                      ? "bg-yellow-100 border-yellow-400 text-yellow-800"
+                      : "border-gray-200 bg-white text-gray-500"
+                  }`}
+                >
+                  {new Date(dt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ลัดด่วน (add mode only) */}

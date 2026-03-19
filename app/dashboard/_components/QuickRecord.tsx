@@ -2,6 +2,7 @@
 
 import { timeAgo, formatTime } from "@/utils/time";
 import { MESSAGES } from "@/constants/messages";
+import { PinIcon } from "@/components/icons";
 
 export type QuickModal =
   | "feeding"
@@ -15,7 +16,7 @@ export type QuickBtnConfig = {
   key: QuickModal;
   label: string;
   icon: React.ReactNode;
-  bg: string;       // used for icon-circle background
+  bg: string; // used for icon-circle background
   iconColor: string;
   lastLog?: { logged_at: string } | null;
   comingSoon?: boolean;
@@ -29,7 +30,8 @@ interface Props {
 export function QuickRecord({ buttons, onPress }: Props) {
   return (
     <section className="px-4 pt-5">
-      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+        <PinIcon size={13} className="text-medical" />
         {MESSAGES.UI.SECTION_QUICK_RECORD}
       </p>
       <div className="grid grid-cols-3 gap-2.5">
@@ -42,7 +44,9 @@ export function QuickRecord({ buttons, onPress }: Props) {
             className="bg-white rounded-2xl p-3 flex flex-col items-center gap-0 shadow-sm border border-gray-100/80 active:scale-95 transition-transform disabled:opacity-50"
           >
             {/* Icon circle */}
-            <div className={`w-11 h-11 rounded-xl ${btn.bg} flex items-center justify-center mb-2 mt-1`}>
+            <div
+              className={`w-11 h-11 rounded-xl ${btn.bg} flex items-center justify-center mb-2 mt-1`}
+            >
               <span className={`${btn.iconColor} text-[22px] leading-none`}>
                 {btn.icon}
               </span>

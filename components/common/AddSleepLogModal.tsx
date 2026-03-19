@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { apiPost, apiPatch } from "@/services/api/client";
 import { XIcon, SaveIcon, BedIcon, MoonIcon, TimerIcon } from "@/components/icons";
-import { toLocalDatetimeValue } from "@/utils/time";
+import { getRecentDateTimeSuggestions, toLocalDatetimeValue } from "@/utils/time";
 import type { SleepLog } from "@/types/app";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -77,6 +77,7 @@ export function AddSleepLogModal({ idToken, babyId, initialData, onClose, onSucc
   const [noteText, setNoteText]           = useState(initText);
   const [submitting, setSubmitting]       = useState(false);
   const [error, setError]                 = useState("");
+  const recentTimeSuggestions = getRecentDateTimeSuggestions();
 
   const computedMinutes =
     startedAt && endedAt
@@ -198,6 +199,22 @@ export function AddSleepLogModal({ idToken, babyId, initialData, onClose, onSucc
             <input type="datetime-local" value={startedAt} required
               onChange={(e) => handleStartChange(e.target.value)}
               className="block w-full rounded-xl border border-gray-200 px-0 py-2.5 text-gray-900 text-sm focus:border-purple-400 focus:ring-1 focus:ring-purple-400 outline-none" />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {recentTimeSuggestions.map((dt) => (
+                <button
+                  key={dt}
+                  type="button"
+                  onClick={() => handleStartChange(dt)}
+                  className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95 touch-manipulation ${
+                    startedAt === dt
+                      ? "bg-purple-100 border-purple-400 text-purple-800"
+                      : "border-gray-200 bg-white text-gray-500"
+                  }`}
+                >
+                  {new Date(dt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ระยะเวลางีบ (nap only) */}

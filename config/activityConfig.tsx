@@ -357,7 +357,8 @@ export function buildActivities(
       type: l.type,
       logged_at: l.logged_at,
       icon: cfg.icon,
-      label: cfg.label,
+      // UX: show a consistent prefix for milk feeding logs.
+      label: `ป้อนนม : ${cfg.label}`,
       detail: cfg.detail(l),
       notes: l.notes,
       source: { kind: "milk", data: l } satisfies ActivitySource,

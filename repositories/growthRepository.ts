@@ -58,3 +58,30 @@ export async function createGrowthRecord(params: {
   }
   return data as GrowthRecordRow;
 }
+
+export async function updateGrowthRecord(
+  id: string,
+  babyId: string,
+  fields: Partial<{
+    recorded_at: string;
+    weight_kg: number | null;
+    height_cm: number | null;
+    head_circumference_cm: number | null;
+    notes: string | null;
+  }>
+): Promise<GrowthRecordRow | null> {
+  const { data, error } = await supabaseServer
+    .from("growth_records")
+    // @ts-expect-error - update type inference with generic Database
+    .update(fields)
+    .eq("id", id)
+    .eq("baby_id", babyId)
+    .select(SELECT_FIELDS)
+    .single();
+
+  if (error || !data) {
+    console.error("[growthRepository] updateGrowthRecord error:", error);
+    return null;
+  }
+  return data as GrowthRecordRow;
+}
