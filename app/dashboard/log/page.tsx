@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, type ReactNode } from "react";
+import Link from "next/link";
 import { useDashboardAuth } from "@/hooks/useDashboardAuth";
 import { useLogs } from "@/hooks/useLogs";
 import { useSelectedBabyId } from "@/hooks/useSelectedBabyId";
@@ -177,7 +178,7 @@ function SummarySection({
   poopCount,
   diaperUsedCount,
   lastPoopHours,
-}: SummarySectionProps) {
+}: Readonly<SummarySectionProps>) {
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -360,7 +361,7 @@ export default function LogPage() {
   const insights = [
     feedCount > 0
       ? `ป้อนนมรวม ${feedTotalOz.toFixed(1)} oz • เฉลี่ย ${feedAvgOz.toFixed(1)} oz/ครั้ง${
-          feedIntervalHours ? ` • ทุก ~${feedIntervalHours.toFixed(1)} ชม.` : ""
+          feedIntervalHours && ` • ทุก ~${feedIntervalHours.toFixed(1)} ชม.`
         }`
       : "ยังไม่มีบันทึกการป้อนนมในช่วงเวลานี้",
     pumpingCount > 0
@@ -377,6 +378,95 @@ export default function LogPage() {
   const isCustomValid =
     datePreset !== "custom" ||
     (!!customFrom && !!customTo && customFrom <= customTo);
+
+  let logContent: ReactNode;
+  if (logsLoading) {
+    logContent = (
+      <LoadingSpinner className="text-xs" label="กำลังโหลดกิจกรรม..." />
+    );
+  } else if (!isCustomValid) {
+    logContent = (
+      <div className="bg-white rounded-2xl p-8 text-center mt-2 shadow-sm">
+        <p className="text-gray-400 text-sm">
+          กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดให้ถูกต้อง
+        </p>
+      </div>
+    );
+  } else if (groups.length === 0) {
+    logContent = (
+      <div className="bg-white rounded-2xl p-10 text-center mt-2 shadow-sm">
+        <p className="text-3xl mb-3">📋</p>
+        <p className="text-gray-500 text-sm font-medium">
+          {MESSAGES.UI.EMPTY_RECORDS}
+        </p>
+        <p className="text-gray-300 text-xs mt-1">
+          ยังไม่มีกิจกรรมในช่วงเวลานี้
+        </p>
+      </div>
+    );
+  } else {
+    logContent = (
+      <div className="space-y-5 pb-4">
+        {/* Layer 1: Summary by current filter range */}
+        <SummarySection
+          rangeLabel={rangeLabel}
+          feedTotalOz={feedTotalOz}
+          feedCount={feedCount}
+          pumpingTotalOz={pumpingTotalOz}
+          pumpingCount={pumpingCount}
+          sleepHours={sleepHours}
+          napMinutes={napMinutes}
+          peeCount={peeCount}
+          poopCount={poopCount}
+          diaperUsedCount={diaperUsedCount}
+          lastPoopHours={lastPoopHours}
+        />
+
+        {/* Layer 2: Auto insights */}
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <h3 className="text-sm font-bold text-gray-800 mb-2">Insight</h3>
+          <div className="space-y-1.5">
+            {insights.map((text) => (
+              <p key={text} className="text-xs text-gray-600 leading-relaxed">
+                • {text}
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <Link
+          href="/dashboard/log/month"
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-green-200 bg-green-50 text-green-700 text-xs font-semibold hover:bg-green-100 transition-colors"
+        >
+          <CalendarIcon size={14} />
+          ดูสรุปเป็นรายเดือน
+        </Link>
+
+        {/* Layer 3: Timeline list */}
+        {groups.map((group) => (
+          <div key={group.date}>
+            {/* Date group label */}
+            <div className="flex items-center gap-2 mb-2.5 px-1">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
+                {formatDateGroup(group.date)}
+              </span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+            <div className="space-y-2">
+              {group.items.map((act) => (
+                <ActivityCard
+                  key={act.id}
+                  activity={act}
+                  onEdit={setEditActivity}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -466,82 +556,7 @@ export default function LogPage() {
       </header>
 
       {/* ── Content ─────────────────────────────────────────────────────── */}
-      <div className="flex-1 px-4 pt-4">
-        {logsLoading ? (
-          <LoadingSpinner className="text-xs" label="กำลังโหลดกิจกรรม..." />
-        ) : !isCustomValid ? (
-          <div className="bg-white rounded-2xl p-8 text-center mt-2 shadow-sm">
-            <p className="text-gray-400 text-sm">
-              กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดให้ถูกต้อง
-            </p>
-          </div>
-        ) : groups.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center mt-2 shadow-sm">
-            <p className="text-3xl mb-3">📋</p>
-            <p className="text-gray-500 text-sm font-medium">
-              {MESSAGES.UI.EMPTY_RECORDS}
-            </p>
-            <p className="text-gray-300 text-xs mt-1">
-              ยังไม่มีกิจกรรมในช่วงเวลานี้
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5 pb-4">
-            {/* Layer 1: Summary by current filter range */}
-            <SummarySection
-              rangeLabel={rangeLabel}
-              feedTotalOz={feedTotalOz}
-              feedCount={feedCount}
-              pumpingTotalOz={pumpingTotalOz}
-              pumpingCount={pumpingCount}
-              sleepHours={sleepHours}
-              napMinutes={napMinutes}
-              peeCount={peeCount}
-              poopCount={poopCount}
-              diaperUsedCount={diaperUsedCount}
-              lastPoopHours={lastPoopHours}
-            />
-
-            {/* Layer 2: Auto insights */}
-            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <h3 className="text-sm font-bold text-gray-800 mb-2">Insight</h3>
-              <div className="space-y-1.5">
-                {insights.map((text) => (
-                  <p
-                    key={text}
-                    className="text-xs text-gray-600 leading-relaxed"
-                  >
-                    • {text}
-                  </p>
-                ))}
-              </div>
-            </section>
-
-            {/* Layer 3: Timeline list */}
-            {groups.map((group) => (
-              <div key={group.date}>
-                {/* Date group label */}
-                <div className="flex items-center gap-2 mb-2.5 px-1">
-                  <div className="h-px flex-1 bg-gray-200" />
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
-                    {formatDateGroup(group.date)}
-                  </span>
-                  <div className="h-px flex-1 bg-gray-200" />
-                </div>
-                <div className="space-y-2">
-                  {group.items.map((act) => (
-                    <ActivityCard
-                      key={act.id}
-                      activity={act}
-                      onEdit={setEditActivity}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <div className="flex-1 px-4 pt-4">{logContent}</div>
 
       {editActivity && selectedBabyId && (
         <EditActivityModal
