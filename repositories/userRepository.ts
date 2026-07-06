@@ -6,7 +6,7 @@ export async function findUserByLineId(
 ): Promise<UserRow | null> {
   const { data, error } = await supabaseServer
     .from("users")
-    .select("id, line_user_id, display_name, picture_url")
+    .select("id, line_user_id, phone, display_name, picture_url")
     .eq("line_user_id", lineUserId)
     .maybeSingle();
 
@@ -70,19 +70,69 @@ export async function getUserPinHash(
   return (data as { pin_hash: string | null }).pin_hash ?? null;
 }
 
-/** Get pin_hash + line_user_id by database user UUID (used in web-login flow). */
-export async function getUserAuthById(
-  userId: string,
-): Promise<{ pin_hash: string | null; line_user_id: string | null } | null> {
+/** Get auth fields by phone (used in web-login flow). */
+export async function getUserAuthByPhone(
+  phone: string,
+): Promise<{
+  id: string;
+  pin_hash: string | null;
+  line_user_id: string | null;
+} | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabaseServer as any)
     .from("users")
-    .select("pin_hash, line_user_id")
-    .eq("id", userId)
+    .select("id, pin_hash, line_user_id")
+    .eq("phone", phone)
     .maybeSingle();
 
   if (error || !data) return null;
-  return data as { pin_hash: string | null; line_user_id: string | null };
+  return data as {
+    id: string;
+    pin_hash: string | null;
+    line_user_id: string | null;
+  };
+}
+
+export async function findUserByPhone(
+  phone: string,
+): Promise<{ id: string; line_user_id: string | null } | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabaseServer as any)
+    .from("users")
+    .select("id, line_user_id")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as { id: string; line_user_id: string | null };
+}
+
+/** Set phone once (for users who registered before phone was required). */
+export async function setUserPhoneIfEmpty(
+  lineUserId: string,
+  phone: string,
+): Promise<{ ok: true } | { ok: false; reason: "duplicate" | "already_set" | "error" }> {
+  const taken = await findUserByPhone(phone);
+  if (taken && taken.line_user_id !== lineUserId) {
+    return { ok: false, reason: "duplicate" };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabaseServer as any)
+    .from("users")
+    .update({ phone, updated_at: new Date().toISOString() })
+    .eq("line_user_id", lineUserId)
+    .is("phone", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, reason: "duplicate" };
+    console.error("[userRepository] setUserPhoneIfEmpty error:", error);
+    return { ok: false, reason: "error" };
+  }
+  if (!data) return { ok: false, reason: "already_set" };
+  return { ok: true };
 }
 
 export async function setUserPinHash(

@@ -14,3 +14,4 @@ export { AddPumpingModal } from "./AddPumpingModal";
 export { BottomNav } from "./BottomNav";
 export { SwitchBabySheet } from "./SwitchBabySheet";
 export { EditActivityModal } from "./EditActivityModal";
+export { PhoneSetupGate } from "./PhoneSetupGate";

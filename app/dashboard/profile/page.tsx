@@ -30,11 +30,11 @@ function RedeemInviteSheet({
   idToken,
   onClose,
   onSuccess,
-}: {
+}: Readonly<{
   idToken: string | null;
   onClose: () => void;
   onSuccess: () => void;
-}) {
+}>) {
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -119,27 +119,38 @@ function RedeemInviteSheet({
 function PinSetupSheet({
   idToken,
   onClose,
-}: {
+}: Readonly<{
   idToken: string | null;
   onClose: () => void;
-}) {
-  const [pin,     setPin]     = useState("");
+}>) {
+  const [pin, setPin] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState("");
-  const [done,    setDone]    = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{6}$/.test(pin))          { setError("PIN ต้องเป็นตัวเลข 6 หลัก"); return; }
-    if (pin !== confirm)               { setError("PIN ไม่ตรงกัน"); return; }
+    if (!/^\d{6}$/.test(pin)) {
+      setError("PIN ต้องเป็นตัวเลข 6 หลัก");
+      return;
+    }
+    if (pin !== confirm) {
+      setError("PIN ไม่ตรงกัน");
+      return;
+    }
     setLoading(true);
     setError("");
     const result = await apiPost<{ success: boolean }>(
-      "/api/auth/set-pin", idToken, { pin },
+      "/api/auth/set-pin",
+      idToken,
+      { pin },
     );
     setLoading(false);
-    if (!result.ok) { setError(result.error); return; }
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
     setDone(true);
     setTimeout(onClose, 1500);
   };
@@ -157,16 +168,23 @@ function PinSetupSheet({
           <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
             <KeyIcon size={18} className="text-blue-500" />
           </div>
-          <h2 className="text-base font-bold text-gray-900">ตั้ง PIN สำหรับ Web</h2>
+          <h2 className="text-base font-bold text-gray-900">
+            ตั้ง PIN สำหรับ Web
+          </h2>
         </div>
         <p className="text-xs text-gray-400 mb-5 pl-12">
-          ใช้เข้าสู่ระบบในเบราว์เซอร์ทั่วไป ด้วย User ID + PIN 6 หลัก
+          ใช้เข้าสู่ระบบในเบราว์เซอร์ทั่วไป ด้วยเบอร์โทร + PIN 6 หลัก
         </p>
 
         {done ? (
           <div className="py-8 text-center">
-            <CheckCircleIcon size={48} className="text-emerald-400 mx-auto mb-2" />
-            <p className="text-green-600 font-semibold text-sm">ตั้ง PIN สำเร็จ!</p>
+            <CheckCircleIcon
+              size={48}
+              className="text-emerald-400 mx-auto mb-2"
+            />
+            <p className="text-green-600 font-semibold text-sm">
+              ตั้ง PIN สำเร็จ!
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -177,7 +195,9 @@ function PinSetupSheet({
               maxLength={6}
               placeholder="PIN ใหม่ (6 ตัวเลข)"
               value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setPin(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
               className="w-full bg-gray-50 rounded-xl px-3 py-3 text-xl text-gray-800 border border-gray-100 focus:outline-none focus:border-blue-300 font-mono tracking-widest text-center"
             />
             <input
@@ -187,10 +207,14 @@ function PinSetupSheet({
               maxLength={6}
               placeholder="ยืนยัน PIN"
               value={confirm}
-              onChange={(e) => setConfirm(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setConfirm(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
               className="w-full bg-gray-50 rounded-xl px-3 py-3 text-xl text-gray-800 border border-gray-100 focus:outline-none focus:border-blue-300 font-mono tracking-widest text-center"
             />
-            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+            {error && (
+              <p className="text-sm text-red-500 text-center">{error}</p>
+            )}
             <button
               type="submit"
               disabled={loading || pin.length !== 6 || confirm.length !== 6}
@@ -205,13 +229,13 @@ function PinSetupSheet({
   );
 }
 
-// ─── User ID display (for web login) ─────────────────────────────────────────
+// ─── Phone display (for web login) ───────────────────────────────────────────
 
-function UserIdCard({ uid }: { uid: string }) {
+function PhoneCard({ phone }: Readonly<{ phone: string }>) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(uid).catch(() => {});
+    await navigator.clipboard.writeText(phone).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -220,13 +244,19 @@ function UserIdCard({ uid }: { uid: string }) {
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-50">
         <KeyIcon size={16} className="text-gray-400" />
-        <h2 className="text-sm font-bold text-gray-800">เข้าสู่ระบบผ่านเบราว์เซอร์</h2>
+        <h2 className="text-sm font-bold text-gray-800">
+          เข้าสู่ระบบผ่านเบราว์เซอร์
+        </h2>
       </div>
       <div className="px-4 py-4 space-y-3">
         <div>
-          <p className="text-xs text-gray-400 mb-1">User ID (สำหรับ Web Login)</p>
+          <p className="text-xs text-gray-400 mb-1">
+            เบอร์โทร (สำหรับ Web Login)
+          </p>
           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-            <code className="flex-1 text-xs text-gray-600 font-mono break-all">{uid}</code>
+            <code className="flex-1 text-sm text-gray-700 font-mono tracking-wider">
+              {phone}
+            </code>
             <button
               type="button"
               onClick={copy}
@@ -237,7 +267,8 @@ function UserIdCard({ uid }: { uid: string }) {
           </div>
         </div>
         <p className="text-[11px] text-gray-400 leading-relaxed">
-          บันทึก User ID นี้ไว้ แล้วตั้ง PIN ด้านล่าง เพื่อเข้าสู่ระบบในเบราว์เซอร์อื่น
+          ใช้เบอร์โทรนี้ร่วมกับ PIN ด้านล่าง
+          เพื่อเข้าสู่ระบบในเบราว์เซอร์อื่น
         </p>
       </div>
     </div>
@@ -249,9 +280,9 @@ export default function ProfilePage() {
   const [selectedBabyId, setSelectedBabyId] = useSelectedBabyId(
     data?.babies ?? [],
   );
-  const [showSwitchBaby,  setShowSwitchBaby]  = useState(false);
+  const [showSwitchBaby, setShowSwitchBaby] = useState(false);
   const [showRedeemSheet, setShowRedeemSheet] = useState(false);
-  const [showPinSheet,    setShowPinSheet]    = useState(false);
+  const [showPinSheet, setShowPinSheet] = useState(false);
 
   const inLineBrowser = isLineInAppBrowser();
 
@@ -280,7 +311,9 @@ export default function ProfilePage() {
       {/* ── Gradient hero header ───────────────────────────────────────── */}
       <header
         className="px-4 pt-8 pb-7 flex flex-col items-center text-center"
-        style={{ background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)" }}
+        style={{
+          background: "linear-gradient(135deg, #eefbeb 0%, #d3f5cc 100%)",
+        }}
       >
         <div className="w-16 h-16 rounded-full border-2 border-green-200 shadow-sm overflow-hidden bg-white/50 mb-3">
           {user.picture_url ? (
@@ -302,11 +335,12 @@ export default function ProfilePage() {
         <p className="font-bold text-green-900 text-lg leading-tight">
           {user.display_name ?? "ผู้ใช้"}
         </p>
-        <p className="text-green-600 text-xs mt-0.5">{MESSAGES.UI.LINE_ACCOUNT}</p>
+        <p className="text-green-600 text-xs mt-0.5">
+          {MESSAGES.UI.LINE_ACCOUNT}
+        </p>
       </header>
 
       <div className="flex-1 px-4 pt-4 space-y-4">
-
         {/* My Babies */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
@@ -324,7 +358,9 @@ export default function ProfilePage() {
 
           {babies.length === 0 ? (
             <div className="px-4 py-6 text-center">
-              <p className="text-gray-400 text-sm">{MESSAGES.UI.EMPTY_BABIES}</p>
+              <p className="text-gray-400 text-sm">
+                {MESSAGES.UI.EMPTY_BABIES}
+              </p>
               <Link
                 href="/dashboard/babies/new"
                 className="mt-2 inline-block text-blue-500 text-sm font-medium"
@@ -432,14 +468,16 @@ export default function ProfilePage() {
         )}
 
         {/* Web login section — only visible in LINE browser so user can set their PIN */}
-        {inLineBrowser && user.id && (
+        {inLineBrowser && user.phone && (
           <>
-            <UserIdCard uid={user.id} />
+            <PhoneCard phone={user.phone} />
 
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-50">
                 <KeyIcon size={16} className="text-gray-400" />
-                <h2 className="text-sm font-bold text-gray-800">PIN สำหรับ Web Login</h2>
+                <h2 className="text-sm font-bold text-gray-800">
+                  PIN สำหรับ Web Login
+                </h2>
               </div>
               <button
                 type="button"
@@ -447,7 +485,10 @@ export default function ProfilePage() {
                 className="w-full flex items-center justify-between px-4 py-3 active:bg-gray-50 transition-colors"
               >
                 <p className="text-sm text-gray-600">ตั้ง / เปลี่ยน PIN</p>
-                <ChevronLeftIcon size={16} className="text-gray-300 rotate-180" />
+                <ChevronLeftIcon
+                  size={16}
+                  className="text-gray-300 rotate-180"
+                />
               </button>
             </div>
           </>
@@ -464,7 +505,9 @@ export default function ProfilePage() {
               <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
                 <LogOutIcon size={16} className="text-red-400" />
               </div>
-              <span className="text-sm font-medium text-red-500">ออกจากระบบ</span>
+              <span className="text-sm font-medium text-red-500">
+                ออกจากระบบ
+              </span>
             </button>
           </div>
         )}

@@ -122,3 +122,4 @@ Open [http://localhost:3000](http://localhost:3000). Try:
 - `npm run build` – Build for production
 - `npm run start` – Start production server
 - `npm run lint`  – Run ESLint
+- `npm install next@latest react@latest react-dom@latest eslint-config-next@latest` - Update nextjs

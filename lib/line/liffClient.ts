@@ -197,7 +197,7 @@ export async function initLiffAndGetToken(withProfile = false): Promise<LiffInit
       return {
         ok: false,
         error: "no_web_session",
-        message: "กรุณาเข้าสู่ระบบด้วย LINE User ID และ PIN",
+        message: "กรุณาเข้าสู่ระบบด้วยเบอร์โทรและ PIN",
       };
     }
     return { ok: true, idToken: stored };

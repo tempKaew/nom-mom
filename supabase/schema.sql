@@ -8,11 +8,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   line_user_id TEXT UNIQUE,
+  phone TEXT,
   display_name TEXT,
   picture_url TEXT,
+  pin_hash TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS users_phone_unique ON users (phone) WHERE phone IS NOT NULL;
 
 -- Babies (created_by_user_id = ผู้สร้างข้อมูลเด็ก, มีสิทธิสร้างรหัสเชิญ)
 CREATE TABLE IF NOT EXISTS babies (
