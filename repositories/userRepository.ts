@@ -37,7 +37,6 @@ export async function createUser(params: {
 }): Promise<{ id: string } | null> {
   const { data, error } = await supabaseServer
     .from("users")
-    // @ts-expect-error - insert type inference with generic Database
     .insert(params)
     .select("id")
     .single();

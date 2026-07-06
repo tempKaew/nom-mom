@@ -47,7 +47,6 @@ export async function updateSleepLog(
 ): Promise<SleepLogRow | null> {
   const { data, error } = await supabaseServer
     .from("sleep_logs")
-    // @ts-expect-error - update type inference with generic Database
     .update(fields)
     .eq("id", id)
     .eq("baby_id", babyId)
@@ -82,7 +81,6 @@ export async function createSleepLog(params: {
 
   const { data, error } = await supabaseServer
     .from("sleep_logs")
-    // @ts-expect-error - insert type inference with generic Database
     .insert({
       baby_id: params.baby_id,
       user_id: params.user_id,

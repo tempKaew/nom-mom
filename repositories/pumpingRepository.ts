@@ -1,6 +1,11 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { API_DEFAULTS } from "@/constants/api";
-import type { PumpingType, BreastCondition, PainLevel, StorageType } from "@/types/app";
+import type {
+  PumpingType,
+  BreastCondition,
+  PainLevel,
+  StorageType,
+} from "@/types/app";
 
 export type PumpingSessionRow = {
   id: string;
@@ -20,29 +25,14 @@ export type PumpingSessionRow = {
   created_at: string;
 };
 
-const SELECT_FIELDS = [
-  "id",
-  "start_time",
-  "end_time",
-  "duration_minutes",
-  "left_volume_ml",
-  "right_volume_ml",
-  "total_volume_ml",
-  "pumping_type",
-  "breast_condition",
-  "pain_level",
-  "storage_type",
-  "note_text",
-  "note_tags",
-  "notes",
-  "created_at",
-].join(", ");
+const SELECT_FIELDS =
+  "id, start_time, end_time, duration_minutes, left_volume_ml, right_volume_ml, total_volume_ml, pumping_type, breast_condition, pain_level, storage_type, note_text, note_tags, notes, created_at";
 
 export async function getPumpingSessionsByBabyId(
   babyId: string,
   limit: number = API_DEFAULTS.LOGS_LIMIT_DEFAULT,
   from?: string,
-  to?: string
+  to?: string,
 ): Promise<PumpingSessionRow[]> {
   let query = supabaseServer
     .from("pumping_sessions")
@@ -55,7 +45,8 @@ export async function getPumpingSessionsByBabyId(
 
   const { data, error } = await query.limit(limit);
 
-  if (error) throw new Error(error.message ?? "Failed to load pumping sessions");
+  if (error)
+    throw new Error(error.message ?? "Failed to load pumping sessions");
   return (data ?? []) as PumpingSessionRow[];
 }
 
@@ -74,11 +65,10 @@ export async function updatePumpingSession(
     note_text: string | null;
     note_tags: string[];
     notes: string | null;
-  }>
+  }>,
 ): Promise<PumpingSessionRow | null> {
   const { data, error } = await supabaseServer
     .from("pumping_sessions")
-    // @ts-expect-error - update type inference with generic Database
     .update(fields)
     .eq("id", id)
     .eq("baby_id", babyId)
@@ -111,7 +101,6 @@ export async function createPumpingSession(params: {
 }): Promise<PumpingSessionRow | null> {
   const { data, error } = await supabaseServer
     .from("pumping_sessions")
-    // @ts-expect-error - insert type inference with generic Database
     .insert({
       baby_id: params.baby_id,
       user_id: params.user_id,

@@ -54,7 +54,6 @@ export async function updateExcretionEvent(
 
   const { data, error } = await supabaseServer
     .from("excretion_event")
-    // @ts-expect-error - update type inference with generic Database
     .update(fields)
     .eq("id", id)
     .eq("baby_id", babyId)
@@ -93,7 +92,6 @@ export async function createExcretionEvent(
 
   const { data, error } = await supabaseServer
     .from("excretion_event")
-    // @ts-expect-error - insert type inference with generic Database
     .insert(row)
     .select(
       "id, baby_id, type, datetime, diaper_used, pee_amount, pee_color, poop_color, poop_texture, poop_amount, smell, rash, leak, note, created_at"

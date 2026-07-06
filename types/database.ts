@@ -41,6 +41,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       babies: {
         Row: {
@@ -73,6 +74,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       baby_members: {
         Row: {
@@ -99,6 +101,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       milk_logs: {
         Row: {
@@ -137,6 +140,70 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      pumping_sessions: {
+        Row: {
+          id: string;
+          baby_id: string;
+          user_id: string;
+          start_time: string;
+          end_time: string | null;
+          duration_minutes: number | null;
+          left_volume_ml: number;
+          right_volume_ml: number;
+          total_volume_ml: number;
+          pumping_type: string;
+          breast_condition: string | null;
+          pain_level: string | null;
+          storage_type: string;
+          note_text: string | null;
+          note_tags: string[];
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          baby_id: string;
+          user_id: string;
+          start_time?: string;
+          end_time?: string | null;
+          duration_minutes?: number | null;
+          left_volume_ml?: number;
+          right_volume_ml?: number;
+          total_volume_ml?: number;
+          pumping_type?: string;
+          breast_condition?: string | null;
+          pain_level?: string | null;
+          storage_type?: string;
+          note_text?: string | null;
+          note_tags?: string[];
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          baby_id?: string;
+          user_id?: string;
+          start_time?: string;
+          end_time?: string | null;
+          duration_minutes?: number | null;
+          left_volume_ml?: number;
+          right_volume_ml?: number;
+          total_volume_ml?: number;
+          pumping_type?: string;
+          breast_condition?: string | null;
+          pain_level?: string | null;
+          storage_type?: string;
+          note_text?: string | null;
+          note_tags?: string[];
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       excretion_event: {
         Row: {
@@ -193,6 +260,7 @@ export interface Database {
           note?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       growth_records: {
         Row: {
@@ -231,6 +299,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       sleep_logs: {
         Row: {
@@ -269,6 +338,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       appointments: {
         Row: {
@@ -310,6 +380,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       baby_invites: {
         Row: {
@@ -354,6 +425,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

@@ -33,7 +33,6 @@ export async function addMember(params: {
   user_id: string;
   role: string;
 }): Promise<Error | null> {
-  // @ts-expect-error - insert type inference with generic Database
   const { error } = await supabaseServer.from("baby_members").insert(params);
   return error ? new Error(error.message) : null;
 }

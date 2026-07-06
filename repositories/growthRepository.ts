@@ -39,7 +39,6 @@ export async function createGrowthRecord(params: {
 }): Promise<GrowthRecordRow | null> {
   const { data, error } = await supabaseServer
     .from("growth_records")
-    // @ts-expect-error - insert type inference with generic Database
     .insert({
       baby_id: params.baby_id,
       user_id: params.user_id,
@@ -72,7 +71,6 @@ export async function updateGrowthRecord(
 ): Promise<GrowthRecordRow | null> {
   const { data, error } = await supabaseServer
     .from("growth_records")
-    // @ts-expect-error - update type inference with generic Database
     .update(fields)
     .eq("id", id)
     .eq("baby_id", babyId)

@@ -14,7 +14,7 @@ const SELECT_FIELDS =
   "id, title, doctor_name, hospital, appointment_at, notes, status";
 
 export async function getAppointmentsByBabyId(
-  babyId: string
+  babyId: string,
 ): Promise<AppointmentRow[]> {
   const { data, error } = await supabaseServer
     .from("appointments")
@@ -37,13 +37,13 @@ export async function createAppointment(params: {
   status?: string;
 }): Promise<AppointmentRow | null> {
   const validStatuses = ["upcoming", "completed", "cancelled"];
-  const status = params.status && validStatuses.includes(params.status)
-    ? params.status
-    : "upcoming";
+  const status =
+    params.status && validStatuses.includes(params.status)
+      ? params.status
+      : "upcoming";
 
   const { data, error } = await supabaseServer
     .from("appointments")
-    // @ts-expect-error - insert type inference with generic Database
     .insert({
       baby_id: params.baby_id,
       user_id: params.user_id,
@@ -73,11 +73,10 @@ export async function updateAppointment(
     appointment_at: string;
     notes?: string | null;
     status?: string;
-  }
+  },
 ): Promise<AppointmentRow | null> {
   const { data, error } = await supabaseServer
     .from("appointments")
-    // @ts-expect-error - update type inference with generic Database
     .update({
       title: params.title,
       doctor_name: params.doctor_name ?? null,
@@ -100,18 +99,20 @@ export async function updateAppointment(
 
 export async function updateAppointmentStatus(
   id: string,
-  status: string
+  status: string,
 ): Promise<AppointmentRow | null> {
   const { data, error } = await supabaseServer
     .from("appointments")
-    // @ts-expect-error - update type inference with generic Database
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", id)
     .select(SELECT_FIELDS)
     .single();
 
   if (error || !data) {
-    console.error("[appointmentRepository] updateAppointmentStatus error:", error);
+    console.error(
+      "[appointmentRepository] updateAppointmentStatus error:",
+      error,
+    );
     return null;
   }
   return data as AppointmentRow;

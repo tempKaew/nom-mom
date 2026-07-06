@@ -54,7 +54,6 @@ export async function createBaby(params: {
   // Supabase client typings can infer 'never' for insert with our Database shape; runtime is correct.
   const { data, error } = await supabaseServer
     .from("babies")
-    // @ts-expect-error - insert type inference with generic Database
     .insert({
       name: params.name,
       birth_date: params.birth_date,
@@ -78,7 +77,6 @@ export async function updateBaby(
 ): Promise<BabyRow | null> {
   const { data, error } = await supabaseServer
     .from("babies")
-    // @ts-expect-error - update type inference with generic Database
     .update(updates)
     .eq("id", babyId)
     .select("id, name, birth_date, gender, avatar_url")
@@ -94,7 +92,6 @@ export async function updateBabyAvatar(
 ): Promise<Error | null> {
   const { error } = await supabaseServer
     .from("babies")
-    // @ts-expect-error - update type inference with generic Database
     .update({ avatar_url: avatarUrl })
     .eq("id", babyId);
   return error ? new Error(error.message) : null;

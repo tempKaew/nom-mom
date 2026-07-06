@@ -47,7 +47,6 @@ export async function acceptInvite(
 
   const { error: memberError } = await supabaseServer
     .from("baby_members")
-    // @ts-expect-error - insert type inference with generic Database
     .insert({
       baby_id: (invite as { baby_id: string }).baby_id,
       user_id: userId,
@@ -57,7 +56,6 @@ export async function acceptInvite(
 
   const { error: updateError } = await supabaseServer
     .from("baby_invites")
-    // @ts-expect-error - update type inference with generic Database
     .update({ status: "accepted", updated_at: now })
     .eq("id", inviteId);
   return updateError ? new Error(updateError.message) : null;
@@ -87,7 +85,6 @@ export async function createInvite(params: {
 }): Promise<InviteRow | null> {
   const { data, error } = await supabaseServer
     .from("baby_invites")
-    // @ts-expect-error - insert type inference with generic Database
     .insert(params)
     .select("id, baby_id, token, label, role, status, expires_at, created_at")
     .single();
