@@ -8,7 +8,7 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export default async function HowToDetailPage({ params }: Props) {
+export default async function HowToDetailPage({ params }: Readonly<Props>) {
   const { slug } = await params;
   const article = getHowToArticleBySlug(slug);
   if (!article) notFound();
@@ -43,12 +43,19 @@ export default async function HowToDetailPage({ params }: Props) {
           <h2 className="text-lg font-bold text-gray-900 mt-1.5 leading-snug">
             {article.title}
           </h2>
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed">{article.summary}</p>
+          <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+            {article.summary}
+          </p>
 
           <div className="mt-4 space-y-2.5">
             {article.content.map((line) => (
-              <div key={line} className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
-                <p className="text-sm text-amber-900 leading-relaxed">• {line}</p>
+              <div
+                key={line}
+                className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5"
+              >
+                <p className="text-sm text-amber-900 leading-relaxed">
+                  • {line}
+                </p>
               </div>
             ))}
           </div>
@@ -59,4 +66,3 @@ export default async function HowToDetailPage({ params }: Props) {
     </div>
   );
 }
-

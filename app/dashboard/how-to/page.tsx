@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { ArrowLeftIcon, ChevronRightIcon, LightbulbIcon } from "@/components/icons";
+import {
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  LightbulbIcon,
+} from "@/components/icons";
 import { BottomNav } from "@/components/common";
 import { HOW_TO_ARTICLES } from "./content";
 
@@ -46,7 +50,10 @@ export default function HowToListPage() {
                     {article.summary}
                   </p>
                 </div>
-                <ChevronRightIcon size={14} className="text-gray-400 shrink-0 mt-1" />
+                <ChevronRightIcon
+                  size={14}
+                  className="text-gray-400 shrink-0 mt-1"
+                />
               </div>
             </Link>
           ))}
@@ -57,4 +64,3 @@ export default function HowToListPage() {
     </div>
   );
 }
-

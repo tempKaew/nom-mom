@@ -24,7 +24,8 @@ export const HOW_TO_ARTICLES: HowToArticle[] = [
   {
     slug: "increase-milk-session-quality",
     title: "เพิ่มคุณภาพรอบปั๊มนมแบบทำได้จริง",
-    summary: "เทคนิคง่ายๆ เพื่อให้รอบปั๊มมีประสิทธิภาพมากขึ้นและไม่เครียดเกินไป",
+    summary:
+      "เทคนิคง่ายๆ เพื่อให้รอบปั๊มมีประสิทธิภาพมากขึ้นและไม่เครียดเกินไป",
     category: "การให้นม/ปั๊มนม",
     readTime: "อ่าน 4 นาที",
     content: [
@@ -39,4 +40,3 @@ export const HOW_TO_ARTICLES: HowToArticle[] = [
 export function getHowToArticleBySlug(slug: string): HowToArticle | null {
   return HOW_TO_ARTICLES.find((item) => item.slug === slug) ?? null;
 }
-
